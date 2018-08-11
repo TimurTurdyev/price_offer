@@ -16,6 +16,25 @@
     <div id="content" class="<?php echo $class; ?>"><?php echo $content_top; ?>
       <h1><?php echo $heading_title; ?></h1>
       <p class="lead"><?php echo $sub_title; ?></p>
+      <?php foreach ($sections as $section) { ?>
+      <?php if ($section['title']) { ?>
+      <h2><?php echo $section['title']; ?></h2>
+      <?php } ?>
+      <div class="row">
+        <?php foreach ($section['groups'] as $group) { ?>
+        <div class="col-sm-4">
+          <?php if ($group['title']) { ?>
+          <h4><?php echo $group['title']; ?></h4>
+          <?php } ?>
+          <ul class="list-unstyled">
+            <?php foreach ($group['links'] as $link) { ?>
+            <li><a href="<?php echo $link['href']; ?>"><i class="fa fa-file-excel-o"></i> <?php echo $link['name']; ?></a></li>
+            <?php } ?>
+          </ul>
+        </div>
+        <?php } ?>
+      </div>
+      <?php } ?>
       <?php echo $content_bottom; ?></div>
     <?php echo $column_right; ?></div>
 </div>

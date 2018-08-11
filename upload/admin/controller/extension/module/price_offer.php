@@ -7,8 +7,10 @@ class ControllerExtensionModulePriceOffer extends Controller
     {
         $this->load->language('extension/module/price_offer');
         $this->load->model('setting/setting');
+        $this->load->model('extension/module/price_offer');
 
         $this->document->setTitle($this->language->get('heading_title'));
+        $this->document->addScript('https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js');
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST' && $this->validateForm()) {
             $this->model_setting_setting->editSetting('price_offer', $this->postedSettings());
@@ -19,7 +21,9 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         foreach ([
-            'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'entry_status', 'button_save', 'button_cancel',
+            'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
+            'text_group', 'text_no_sections', 'entry_status', 'entry_target', 'entry_name', 'entry_categories',
+            'entry_section_title', 'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -49,6 +53,18 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         $data['status'] = !empty($settings['price_offer_status']);
 
+        $data['config'] = json_encode([
+            'sections'   => $this->decode($this->cleanSections($settings['price_offer_sections'] ?? [])),
+            'categories' => $this->categories(),
+            'text'       => [
+                'new_section' => $this->language->get('text_new_section'),
+                'new_group'   => $this->language->get('text_new_group'),
+                'new_offer'   => $this->language->get('text_new_offer'),
+                'categories'  => $this->language->get('error_categories'),
+                'name'        => $this->language->get('error_name'),
+            ],
+        ]);
+
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -70,8 +86,78 @@ class ControllerExtensionModulePriceOffer extends Controller
         $post = $this->request->post;
 
         return [
-            'price_offer_status' => empty($post['price_offer_status']) ? 0 : 1,
+            'price_offer_status'   => empty($post['price_offer_status']) ? 0 : 1,
+            'price_offer_sections' => $this->cleanSections($post['price_offer_sections'] ?? []),
         ];
+    }
+
+    // Только известные поля; пустые группы и разделы отбрасываются.
+    private function cleanSections($sections)
+    {
+        $clean = [];
+
+        foreach ((array)$sections as $section) {
+            $groups = [];
+
+            foreach ((array)($section['groups'] ?? []) as $group) {
+                $offers = [];
+
+                foreach ((array)($group['offers'] ?? []) as $offer) {
+                    $offers[] = [
+                        'name'       => trim($offer['name'] ?? ''),
+                        'categories' => $this->ids($offer['categories'] ?? ''),
+                    ];
+                }
+
+                if ($offers) {
+                    $groups[] = [
+                        'title'  => trim($group['title'] ?? ''),
+                        'offers' => $offers,
+                    ];
+                }
+            }
+
+            if ($groups) {
+                $clean[] = [
+                    'title'  => trim($section['title'] ?? ''),
+                    'groups' => $groups,
+                ];
+            }
+        }
+
+        return $clean;
+    }
+
+    private function ids($value)
+    {
+        $ids = is_array($value) ? $value : explode(',', $value);
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids))));
+    }
+
+    private function categories()
+    {
+        $categories = [];
+
+        foreach ($this->model_extension_module_price_offer->getCategories() as $category) {
+            $categories[] = [
+                'id'       => (int)$category['category_id'],
+                'name'     => html_entity_decode($category['name'], ENT_QUOTES, 'UTF-8'),
+                'products' => (int)$category['products'],
+            ];
+        }
+
+        return $categories;
+    }
+
+    // OpenCart хранит ввод экранированным, а в полях Vue нужен исходный текст: при сохранении он экранируется снова.
+    private function decode($value)
+    {
+        if (is_array($value)) {
+            return array_map([$this, 'decode'], $value);
+        }
+
+        return is_string($value) ? html_entity_decode($value, ENT_QUOTES, 'UTF-8') : $value;
     }
 
     private function link($route, $args = '')
