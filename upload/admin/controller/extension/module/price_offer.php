@@ -22,8 +22,9 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
-            'text_group', 'text_no_sections', 'entry_status', 'entry_target', 'entry_name', 'entry_categories',
-            'entry_section_title', 'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
+            'text_group', 'text_no_sections', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
+            'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_section_title', 'entry_group_title',
+            'button_save', 'button_cancel', 'button_add', 'button_remove',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -78,6 +79,18 @@ class ControllerExtensionModulePriceOffer extends Controller
             $this->error[] = $this->language->get('error_permission');
         }
 
+        foreach ($this->cleanSections($this->request->post['price_offer_sections'] ?? []) as $section) {
+            foreach ($section['groups'] as $group) {
+                foreach ($group['offers'] as $offer) {
+                    foreach ($offer['discounts'] as $value) {
+                        if ($value !== '' && (!is_numeric($value) || $value < 0 || $value >= 100)) {
+                            $this->error[] = sprintf($this->language->get('error_discount'), $value, $offer['name']);
+                        }
+                    }
+                }
+            }
+        }
+
         return !$this->error;
     }
 
@@ -106,6 +119,7 @@ class ControllerExtensionModulePriceOffer extends Controller
                     $offers[] = [
                         'name'       => trim($offer['name'] ?? ''),
                         'categories' => $this->ids($offer['categories'] ?? ''),
+                        'discounts'  => $this->cleanDiscounts($offer['discounts'] ?? []),
                     ];
                 }
 
@@ -123,6 +137,19 @@ class ControllerExtensionModulePriceOffer extends Controller
                     'groups' => $groups,
                 ];
             }
+        }
+
+        return $clean;
+    }
+
+    // Скидки мелкого, среднего и крупного опта в процентах, пустая строка - не задана.
+    private function cleanDiscounts($values)
+    {
+        $values = array_values((array)$values);
+        $clean = [];
+
+        for ($i = 0; $i < 3; $i++) {
+            $clean[] = str_replace(',', '.', trim($values[$i] ?? ''));
         }
 
         return $clean;

@@ -7,7 +7,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class PriceOfferSheet
 {
-    const WIDTHS = ['A' => 14, 'B' => 50, 'C' => 16, 'D' => 12, 'E' => 14];
+    const WIDTHS = ['A' => 14, 'B' => 50, 'C' => 16, 'D' => 12, 'E' => 14, 'F' => 14, 'G' => 14, 'H' => 14];
+    const DISCOUNT_COLUMNS = ['F', 'G', 'H'];
     const FIRST_ROW = 3;
 
     private $spreadsheet;
@@ -31,11 +32,16 @@ class PriceOfferSheet
         $this->sheet->getDefaultRowDimension()->setRowHeight(25);
     }
 
+    public static function discountPrice($price, $percent)
+    {
+        return round($price * (100 - $percent) / 100, 2);
+    }
+
     public function header($title, array $columns)
     {
         $sheet = $this->sheet;
 
-        $sheet->mergeCells('A1:E1');
+        $sheet->mergeCells('A1:H1');
         $sheet->setCellValue('A1', $title);
 
         foreach (array_keys(self::WIDTHS) as $index => $column) {
@@ -44,7 +50,7 @@ class PriceOfferSheet
         }
     }
 
-    public function product(array $product)
+    public function product(array $product, array $percents)
     {
         $row = $this->row++;
 
@@ -52,13 +58,26 @@ class PriceOfferSheet
         $this->sheet->setCellValueExplicit('C' . $row, $product['model'], DataType::TYPE_STRING);
         $this->sheet->setCellValue('D' . $row, $product['minimum']);
         $this->image($row, $product['image']);
-        $this->sheet->setCellValue('E' . $row, (float)$product['price']);
+        $this->prices($row, $product['price'], $percents);
     }
 
     public function save($file)
     {
         (new Xlsx($this->spreadsheet))->save($file);
         $this->spreadsheet->disconnectWorksheets();
+    }
+
+    private function prices($row, $price, array $percents)
+    {
+        $this->sheet->setCellValue('E' . $row, (float)$price);
+
+        foreach (self::DISCOUNT_COLUMNS as $index => $column) {
+            if (isset($percents[$index])) {
+                $this->sheet->setCellValue($column . $row, self::discountPrice($price, $percents[$index]));
+            } else {
+                $this->sheet->setCellValue($column . $row, '-');
+            }
+        }
     }
 
     private function image($row, $file)

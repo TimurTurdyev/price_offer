@@ -63,10 +63,22 @@
                   <div class="form-group">
                     <label class="col-sm-3 control-label" for="input-name"><?php echo $entry_name; ?></label>
                     <div class="col-sm-9">
-                      <div class="input-group">
-                        <input type="text" id="input-name" v-model="name" @keydown.enter.prevent="add" class="form-control">
-                        <span class="input-group-btn"><button type="button" @click="add" class="btn btn-success"><i class="fa fa-plus"></i> <?php echo $button_add; ?></button></span>
-                      </div>
+                      <input type="text" id="input-name" v-model="name" @keydown.enter.prevent="add" class="form-control">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-3 control-label"><?php echo $entry_discounts; ?></label>
+                    <div class="col-sm-2">
+                      <input type="text" v-model="discounts[0]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_small; ?>" class="form-control">
+                    </div>
+                    <div class="col-sm-2">
+                      <input type="text" v-model="discounts[1]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_medium; ?>" class="form-control">
+                    </div>
+                    <div class="col-sm-2">
+                      <input type="text" v-model="discounts[2]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_large; ?>" class="form-control">
+                    </div>
+                    <div class="col-sm-3">
+                      <button type="button" @click="add" class="btn btn-success btn-block"><i class="fa fa-plus"></i> <?php echo $button_add; ?></button>
                     </div>
                   </div>
                 </fieldset>
@@ -99,6 +111,9 @@
                       <tr>
                         <td><?php echo $entry_name; ?></td>
                         <td style="width: 25%;"><?php echo $entry_categories; ?></td>
+                        <td style="width: 9%;"><?php echo $entry_small; ?></td>
+                        <td style="width: 9%;"><?php echo $entry_medium; ?></td>
+                        <td style="width: 9%;"><?php echo $entry_large; ?></td>
                         <td style="width: 1px;"></td>
                       </tr>
                     </thead>
@@ -111,6 +126,7 @@
                           <input type="hidden" :name="inputName(s, 'groups', g, 'offers', o, 'categories')" :value="offer.categories.join(',')">
                           <small>{{ categoryNames(offer.categories) }}</small>
                         </td>
+                        <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" class="form-control input-sm"></td>
                         <td class="text-nowrap">
                           <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
                         </td>
@@ -159,7 +175,8 @@ $(function () {
       categories: config.categories,
       selected: [],
       target: 'section',
-      name: ''
+      name: '',
+      discounts: ['', '', '']
     },
     computed: {
       targets: function () {
@@ -188,7 +205,7 @@ $(function () {
           return;
         }
 
-        var offer = { name: this.name.trim(), categories: this.selected.slice() };
+        var offer = { name: this.name.trim(), categories: this.selected.slice(), discounts: this.discounts.slice() };
         var group = { title: '', offers: [offer] };
         var path = this.target.split('.');
 
@@ -202,6 +219,7 @@ $(function () {
 
         this.selected = [];
         this.name = '';
+        this.discounts = ['', '', ''];
       },
       // Пустые группа и раздел не сохраняются, поэтому удаляются вместе с последним предложением.
       removeOffer: function (s, g, o) {

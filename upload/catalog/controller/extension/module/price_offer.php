@@ -165,7 +165,22 @@ class ControllerExtensionModulePriceOffer extends Controller
             'name'       => html_entity_decode(implode(' > ', $names), ENT_QUOTES, 'UTF-8'),
             'caption'    => html_entity_decode($offer['name'], ENT_QUOTES, 'UTF-8'),
             'categories' => $categories,
+            'percents'   => $this->percents((array)($offer['discounts'] ?? [])),
         ];
+    }
+
+    // Скидки мелкого, среднего и крупного опта в процентах, пустая скидка - прочерк в колонке.
+    private function percents(array $values)
+    {
+        $percents = [];
+
+        foreach (array_keys(PriceOfferSheet::DISCOUNT_COLUMNS) as $index) {
+            if (is_numeric($values[$index] ?? '')) {
+                $percents[$index] = (float)$values[$index];
+            }
+        }
+
+        return $percents;
     }
 
     // Пишет xlsx во временную папку, путь потом передается в removeFile().
@@ -184,7 +199,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             $product['model'] = html_entity_decode($product['model'], ENT_QUOTES, 'UTF-8');
             $product['image'] = $this->thumb($product['image']);
 
-            $sheet->product($product);
+            $sheet->product($product, $product['discounts'] ?: $offer['percents']);
         }
 
         $dir = DIR_CACHE . 'price_offer_' . token(16);
@@ -222,7 +237,7 @@ class ControllerExtensionModulePriceOffer extends Controller
     {
         $columns = [];
 
-        foreach (['image', 'name', 'model', 'minimum', 'price'] as $column) {
+        foreach (['image', 'name', 'model', 'minimum', 'price', 'small', 'medium', 'large'] as $column) {
             $columns[] = $this->language->get('column_' . $column);
         }
 

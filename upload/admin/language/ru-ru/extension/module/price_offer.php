@@ -17,11 +17,16 @@ $_['entry_status']        = 'Статус';
 $_['entry_target']        = 'Куда добавить';
 $_['entry_name']          = 'Название';
 $_['entry_categories']    = 'Категории';
+$_['entry_discounts']     = 'Скидки';
+$_['entry_small']         = 'Мелкий опт, %';
+$_['entry_medium']        = 'Средний опт, %';
+$_['entry_large']         = 'Крупный опт, %';
 $_['entry_section_title'] = 'Заголовок раздела';
 $_['entry_group_title']   = 'Заголовок группы';
 
 $_['button_add'] = 'Добавить';
 
 $_['error_permission'] = 'У вас нет прав для управления этим модулем';
+$_['error_discount']   = 'Скидка "%s" у "%s": нужно число от 0 до 99';
 $_['error_categories'] = 'Выберите категории';
 $_['error_name']       = 'Укажите название';
