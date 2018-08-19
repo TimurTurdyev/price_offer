@@ -192,7 +192,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         $this->load->model('tool/image');
 
         $sheet = new PriceOfferSheet($offer['name']);
-        $sheet->header($offer['name'], $this->columns());
+        $sheet->header($this->company(), $this->contacts(), $this->logo(), $offer['name'], $this->columns());
 
         foreach ($this->model_extension_module_price_offer->getProducts($offer['categories']) as $product) {
             $product['name'] = html_entity_decode($product['name'], ENT_QUOTES, 'UTF-8');
@@ -233,6 +233,23 @@ class ControllerExtensionModulePriceOffer extends Controller
         return 'price-offer-' . date('Y-m-d') . '.xlsx';
     }
 
+    private function company()
+    {
+        return [
+            html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8'),
+            html_entity_decode($this->config->get('config_address'), ENT_QUOTES, 'UTF-8'),
+        ];
+    }
+
+    private function contacts()
+    {
+        return [
+            sprintf($this->language->get('text_telephone'), $this->config->get('config_telephone')),
+            sprintf($this->language->get('text_email'), $this->config->get('config_email')),
+            sprintf($this->language->get('text_site'), $this->config->get('config_url')),
+        ];
+    }
+
     private function columns()
     {
         $columns = [];
@@ -242,6 +259,13 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         return $columns;
+    }
+
+    private function logo()
+    {
+        $logo = $this->config->get('config_logo');
+
+        return $logo && is_file(DIR_IMAGE . $logo) ? DIR_IMAGE . $logo : '';
     }
 
     // resize() отдает ссылку на картинку, а PhpSpreadsheet нужен путь к файлу в кэше.

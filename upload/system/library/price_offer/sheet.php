@@ -9,7 +9,7 @@ class PriceOfferSheet
 {
     const WIDTHS = ['A' => 14, 'B' => 50, 'C' => 16, 'D' => 12, 'E' => 14, 'F' => 14, 'G' => 14, 'H' => 14];
     const DISCOUNT_COLUMNS = ['F', 'G', 'H'];
-    const FIRST_ROW = 3;
+    const FIRST_ROW = 4;
 
     private $spreadsheet;
     private $sheet;
@@ -37,16 +37,38 @@ class PriceOfferSheet
         return round($price * (100 - $percent) / 100, 2);
     }
 
-    public function header($title, array $columns)
+    // Реквизиты слева, контакты посередине, логотип справа, под ними название предложения и шапка таблицы.
+    public function header(array $company, array $contacts, $logo, $title, array $columns)
     {
         $sheet = $this->sheet;
+        $sheet->getRowDimension(1)->setRowHeight(75);
 
-        $sheet->mergeCells('A1:H1');
-        $sheet->setCellValue('A1', $title);
+        $sheet->mergeCells('A1:B1');
+        $sheet->setCellValue('A1', implode("\n", $company));
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+        $sheet->mergeCells('C1:E1');
+        $sheet->setCellValue('C1', implode("\n", $contacts));
+        $sheet->getStyle('C1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $sheet->mergeCells('F1:H1');
+
+        if ($logo && is_file($logo)) {
+            $drawing = new Drawing();
+            $drawing->setPath($logo);
+            $drawing->setCoordinates('F1');
+            $drawing->setHeight(80);
+            $drawing->setOffsetX(10);
+            $drawing->setOffsetY(10);
+            $drawing->setWorksheet($sheet);
+        }
+
+        $sheet->mergeCells('A2:H2');
+        $sheet->setCellValue('A2', $title);
 
         foreach (array_keys(self::WIDTHS) as $index => $column) {
             $sheet->getColumnDimension($column)->setWidth(self::WIDTHS[$column]);
-            $sheet->setCellValue($column . '2', $columns[$index]);
+            $sheet->setCellValue($column . '3', $columns[$index]);
         }
     }
 
