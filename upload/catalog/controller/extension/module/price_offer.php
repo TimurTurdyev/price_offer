@@ -199,6 +199,12 @@ class ControllerExtensionModulePriceOffer extends Controller
             $product['model'] = html_entity_decode($product['model'], ENT_QUOTES, 'UTF-8');
             $product['image'] = $this->thumb($product['image']);
 
+            foreach ($product['options'] as &$option) {
+                $option['name'] = html_entity_decode($option['name'], ENT_QUOTES, 'UTF-8');
+            }
+
+            unset($option);
+
             $sheet->product($product, $product['discounts'] ?: $offer['percents']);
         }
 

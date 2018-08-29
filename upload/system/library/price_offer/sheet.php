@@ -72,15 +72,26 @@ class PriceOfferSheet
         }
     }
 
+    // Товар без опций - одна строка с ценами, с опциями - строка товара и по строке на каждое значение опции.
     public function product(array $product, array $percents)
     {
-        $row = $this->row++;
+        $row = $this->row;
 
         $this->sheet->setCellValue('B' . $row, $product['name']);
         $this->sheet->setCellValueExplicit('C' . $row, $product['model'], DataType::TYPE_STRING);
         $this->sheet->setCellValue('D' . $row, $product['minimum']);
         $this->image($row, $product['image']);
-        $this->prices($row, $product['price'], $percents);
+
+        if ($product['options']) {
+            foreach ($product['options'] as $option) {
+                $this->sheet->setCellValue('B' . ++$row, $option['name']);
+                $this->prices($row, $option['price'], $percents);
+            }
+        } else {
+            $this->prices($row, $product['price'], $percents);
+        }
+
+        $this->row = $row + 1;
     }
 
     public function save($file)
