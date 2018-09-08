@@ -1,6 +1,8 @@
 <?php
 class ControllerExtensionModulePriceOffer extends Controller
 {
+    const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'];
+
     private $error = [];
 
     public function index()
@@ -23,8 +25,8 @@ class ControllerExtensionModulePriceOffer extends Controller
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
             'text_group', 'text_default', 'text_no_sections', 'text_help', 'entry_status', 'entry_target', 'entry_name',
-            'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_section_title',
-            'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
+            'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag',
+            'entry_section_title', 'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -57,6 +59,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         $data['config'] = json_encode([
             'sections'   => $this->decode($this->cleanSections($settings['price_offer_sections'] ?? [])),
             'categories' => $this->categories(),
+            'tags'       => self::TAGS,
             'text'       => [
                 'new_section' => $this->language->get('text_new_section'),
                 'new_group'   => $this->language->get('text_new_group'),
@@ -126,6 +129,7 @@ class ControllerExtensionModulePriceOffer extends Controller
                 if ($offers) {
                     $groups[] = [
                         'title'     => trim($group['title'] ?? ''),
+                        'tag'       => $this->tag($group['tag'] ?? '', 'h4'),
                         'discounts' => $this->cleanDiscounts($group['discounts'] ?? []),
                         'offers'    => $offers,
                     ];
@@ -135,6 +139,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             if ($groups) {
                 $clean[] = [
                     'title'  => trim($section['title'] ?? ''),
+                    'tag'    => $this->tag($section['tag'] ?? '', 'h2'),
                     'groups' => $groups,
                 ];
             }
@@ -154,6 +159,11 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         return $clean;
+    }
+
+    private function tag($tag, $default)
+    {
+        return in_array($tag, self::TAGS, true) ? $tag : $default;
     }
 
     private function ids($value)

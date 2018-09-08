@@ -4,6 +4,8 @@ require_once DIR_SYSTEM . 'library/price_offer/sheet.php';
 
 class ControllerExtensionModulePriceOffer extends Controller
 {
+    const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'];
+
     public function index()
     {
         if (!$this->config->get('price_offer_status')) {
@@ -103,6 +105,7 @@ class ControllerExtensionModulePriceOffer extends Controller
                 if ($links) {
                     $groups[] = [
                         'title' => $group['title'] ?? '',
+                        'tag'   => $this->tag($group['tag'] ?? '', 'h4'),
                         'links' => $links,
                     ];
                 }
@@ -111,6 +114,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             if ($groups) {
                 $sections[] = [
                     'title'  => $section['title'] ?? '',
+                    'tag'    => $this->tag($section['tag'] ?? '', 'h2'),
                     'groups' => $groups,
                 ];
             }
@@ -132,6 +136,11 @@ class ControllerExtensionModulePriceOffer extends Controller
             'name' => htmlspecialchars($offer['caption'], ENT_COMPAT, 'UTF-8'),
             'href' => $this->url->link('extension/module/price_offer/download', 'offer=' . $key),
         ];
+    }
+
+    private function tag($tag, $default)
+    {
+        return in_array($tag, self::TAGS, true) ? $tag : $default;
     }
 
     // offer=раздел.группа.предложение - номера по порядку в настройках.

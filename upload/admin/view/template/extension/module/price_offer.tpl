@@ -89,7 +89,12 @@
             <div v-for="(section, s) in sections" class="panel panel-default">
               <div class="panel-heading clearfix">
                 <div class="row">
-                  <div class="col-sm-9">
+                  <div class="col-sm-2">
+                    <select :name="inputName(s, 'tag')" v-model="section.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
+                      <option v-for="tag in tags" :value="tag">{{ tag }}</option>
+                    </select>
+                  </div>
+                  <div class="col-sm-7">
                     <input type="text" :name="inputName(s, 'title')" v-model="section.title" placeholder="<?php echo $entry_section_title; ?>" class="form-control input-sm">
                   </div>
                   <div class="col-sm-3 text-right">
@@ -100,7 +105,12 @@
               <div class="panel-body">
                 <div v-for="(group, g) in section.groups" class="price-offer-group">
                   <div class="row">
-                    <div class="col-sm-9">
+                    <div class="col-sm-2">
+                      <select :name="inputName(s, 'groups', g, 'tag')" v-model="group.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
+                        <option v-for="tag in tags" :value="tag">{{ tag }}</option>
+                      </select>
+                    </div>
+                    <div class="col-sm-7">
                       <input type="text" :name="inputName(s, 'groups', g, 'title')" v-model="group.title" placeholder="<?php echo $entry_group_title; ?>" class="form-control input-sm">
                     </div>
                     <div class="col-sm-3 text-right">
@@ -180,6 +190,7 @@ $(function () {
     data: {
       sections: config.sections,
       categories: config.categories,
+      tags: config.tags,
       selected: [],
       target: 'section',
       name: '',
@@ -213,7 +224,7 @@ $(function () {
         }
 
         var offer = { name: this.name.trim(), categories: this.selected.slice(), discounts: this.discounts.slice() };
-        var group = { title: '', discounts: ['', '', ''], offers: [offer] };
+        var group = { title: '', tag: 'h4', discounts: ['', '', ''], offers: [offer] };
         var path = this.target.split('.');
 
         if (path[0] === 'offer') {
@@ -221,7 +232,7 @@ $(function () {
         } else if (path[0] === 'group') {
           this.sections[path[1]].groups.push(group);
         } else {
-          this.sections.push({ title: '', groups: [group] });
+          this.sections.push({ title: '', tag: 'h2', groups: [group] });
         }
 
         this.selected = [];

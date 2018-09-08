@@ -23,6 +23,7 @@ $_['entry_discounts']     = 'Скидки';
 $_['entry_small']         = 'Мелкий опт, %';
 $_['entry_medium']        = 'Средний опт, %';
 $_['entry_large']         = 'Крупный опт, %';
+$_['entry_tag']           = 'Тег';
 $_['entry_section_title'] = 'Заголовок раздела';
 $_['entry_group_title']   = 'Заголовок группы';
 

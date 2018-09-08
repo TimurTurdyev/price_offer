@@ -18,13 +18,13 @@
       <p class="lead"><?php echo $sub_title; ?></p>
       <?php foreach ($sections as $section) { ?>
       <?php if ($section['title']) { ?>
-      <h2><?php echo $section['title']; ?></h2>
+      <<?php echo $section['tag']; ?>><?php echo $section['title']; ?></<?php echo $section['tag']; ?>>
       <?php } ?>
       <div class="row">
         <?php foreach ($section['groups'] as $group) { ?>
         <div class="col-sm-4">
           <?php if ($group['title']) { ?>
-          <h4><?php echo $group['title']; ?></h4>
+          <<?php echo $group['tag']; ?>><?php echo $group['title']; ?></<?php echo $group['tag']; ?>>
           <?php } ?>
           <ul class="list-unstyled">
             <?php foreach ($group['links'] as $link) { ?>
