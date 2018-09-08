@@ -82,6 +82,7 @@
                     </div>
                   </div>
                 </fieldset>
+                <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_help; ?></div>
               </div>
             </div>
             <p v-if="!sections.length" class="text-center text-muted"><?php echo $text_no_sections; ?></p>
@@ -118,6 +119,12 @@
                       </tr>
                     </thead>
                     <tbody>
+                      <tr class="active">
+                        <td><strong><?php echo $text_default; ?></strong></td>
+                        <td></td>
+                        <td v-for="(value, i) in group.discounts"><input type="text" :name="inputName(s, 'groups', g, 'discounts', i)" v-model="group.discounts[i]" class="form-control input-sm"></td>
+                        <td></td>
+                      </tr>
                       <tr v-for="(offer, o) in group.offers">
                         <td>
                           <input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'name')" v-model="offer.name" class="form-control input-sm">
@@ -126,7 +133,7 @@
                           <input type="hidden" :name="inputName(s, 'groups', g, 'offers', o, 'categories')" :value="offer.categories.join(',')">
                           <small>{{ categoryNames(offer.categories) }}</small>
                         </td>
-                        <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" class="form-control input-sm"></td>
+                        <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" :placeholder="group.discounts[i]" class="form-control input-sm"></td>
                         <td class="text-nowrap">
                           <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
                         </td>
@@ -206,7 +213,7 @@ $(function () {
         }
 
         var offer = { name: this.name.trim(), categories: this.selected.slice(), discounts: this.discounts.slice() };
-        var group = { title: '', offers: [offer] };
+        var group = { title: '', discounts: ['', '', ''], offers: [offer] };
         var path = this.target.split('.');
 
         if (path[0] === 'offer') {

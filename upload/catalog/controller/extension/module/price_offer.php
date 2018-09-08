@@ -150,7 +150,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         return $this->prepare($section, $group, $group['offers'][$path[2]]);
     }
 
-    // Имя предложения собирается из заголовков раздела и группы.
+    // Имя предложения собирается из заголовков раздела и группы, пустые скидки берутся у группы.
     private function prepare(array $section, array $group, array $offer)
     {
         $categories = array_filter(array_map('intval', (array)($offer['categories'] ?? [])));
@@ -165,18 +165,20 @@ class ControllerExtensionModulePriceOffer extends Controller
             'name'       => html_entity_decode(implode(' > ', $names), ENT_QUOTES, 'UTF-8'),
             'caption'    => html_entity_decode($offer['name'], ENT_QUOTES, 'UTF-8'),
             'categories' => $categories,
-            'percents'   => $this->percents((array)($offer['discounts'] ?? [])),
+            'percents'   => $this->percents((array)($offer['discounts'] ?? []), (array)($group['discounts'] ?? [])),
         ];
     }
 
-    // Скидки мелкого, среднего и крупного опта в процентах, пустая скидка - прочерк в колонке.
-    private function percents(array $values)
+    // Скидки мелкого, среднего и крупного опта в процентах: своя у предложения или из группы.
+    private function percents(array $own, array $defaults)
     {
         $percents = [];
 
         foreach (array_keys(PriceOfferSheet::DISCOUNT_COLUMNS) as $index) {
-            if (is_numeric($values[$index] ?? '')) {
-                $percents[$index] = (float)$values[$index];
+            $value = ($own[$index] ?? '') !== '' ? $own[$index] : ($defaults[$index] ?? '');
+
+            if (is_numeric($value)) {
+                $percents[$index] = (float)$value;
             }
         }
 

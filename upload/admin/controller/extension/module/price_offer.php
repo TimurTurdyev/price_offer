@@ -22,9 +22,9 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
-            'text_group', 'text_no_sections', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
-            'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_section_title', 'entry_group_title',
-            'button_save', 'button_cancel', 'button_add', 'button_remove',
+            'text_group', 'text_default', 'text_no_sections', 'text_help', 'entry_status', 'entry_target', 'entry_name',
+            'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_section_title',
+            'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -81,10 +81,10 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         foreach ($this->cleanSections($this->request->post['price_offer_sections'] ?? []) as $section) {
             foreach ($section['groups'] as $group) {
-                foreach ($group['offers'] as $offer) {
-                    foreach ($offer['discounts'] as $value) {
+                foreach (array_merge([$group], $group['offers']) as $row) {
+                    foreach ($row['discounts'] as $value) {
                         if ($value !== '' && (!is_numeric($value) || $value < 0 || $value >= 100)) {
-                            $this->error[] = sprintf($this->language->get('error_discount'), $value, $offer['name']);
+                            $this->error[] = sprintf($this->language->get('error_discount'), $value, $row['name'] ?? $row['title']);
                         }
                     }
                 }
@@ -125,8 +125,9 @@ class ControllerExtensionModulePriceOffer extends Controller
 
                 if ($offers) {
                     $groups[] = [
-                        'title'  => trim($group['title'] ?? ''),
-                        'offers' => $offers,
+                        'title'     => trim($group['title'] ?? ''),
+                        'discounts' => $this->cleanDiscounts($group['discounts'] ?? []),
+                        'offers'    => $offers,
                     ];
                 }
             }
