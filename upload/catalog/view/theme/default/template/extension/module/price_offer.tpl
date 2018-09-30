@@ -16,6 +16,7 @@
     <div id="content" class="<?php echo $class; ?>"><?php echo $content_top; ?>
       <h1><?php echo $heading_title; ?></h1>
       <p class="lead"><?php echo $sub_title; ?></p>
+      <?php echo $top; ?>
       <?php foreach ($sections as $section) { ?>
       <?php if ($section['title']) { ?>
       <<?php echo $section['tag']; ?>><?php echo $section['title']; ?></<?php echo $section['tag']; ?>>
@@ -35,6 +36,7 @@
         <?php } ?>
       </div>
       <?php } ?>
+      <?php echo $bottom; ?>
       <?php echo $content_bottom; ?></div>
     <?php echo $column_right; ?></div>
 </div>

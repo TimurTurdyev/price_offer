@@ -15,15 +15,23 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         $this->load->language('extension/module/price_offer');
 
-        $this->document->setTitle($this->language->get('heading_title'));
+        $page = (array)$this->config->get('price_offer_page') + array_fill_keys(
+            ['h1', 'sub_title', 'meta_title', 'meta_description', 'top', 'bottom'],
+            ''
+        );
+
+        $this->document->setTitle($page['meta_title'] ?: $this->language->get('heading_title'));
+        $this->document->setDescription($page['meta_description']);
 
         $data['breadcrumbs'] = [
             ['text' => $this->language->get('text_home'), 'href' => $this->url->link('common/home')],
             ['text' => $this->language->get('heading_title'), 'href' => $this->url->link('extension/module/price_offer')],
         ];
 
-        $data['heading_title'] = $this->language->get('heading_title');
-        $data['sub_title'] = $this->language->get('text_sub_title');
+        $data['heading_title'] = $page['h1'] ?: $this->language->get('heading_title');
+        $data['sub_title'] = $page['sub_title'] ?: $this->language->get('text_sub_title');
+        $data['top'] = html_entity_decode($page['top'], ENT_QUOTES, 'UTF-8');
+        $data['bottom'] = html_entity_decode($page['bottom'], ENT_QUOTES, 'UTF-8');
         $data['sections'] = $this->sections();
 
         foreach (['column_left', 'column_right', 'content_top', 'content_bottom', 'footer', 'header'] as $part) {

@@ -2,6 +2,7 @@
 class ControllerExtensionModulePriceOffer extends Controller
 {
     const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'];
+    const PAGE = ['h1', 'sub_title', 'meta_title', 'meta_description', 'top', 'bottom'];
 
     private $error = [];
 
@@ -24,9 +25,11 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
-            'text_group', 'text_default', 'text_no_sections', 'text_help', 'entry_status', 'entry_target', 'entry_name',
-            'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag',
-            'entry_section_title', 'entry_group_title', 'button_save', 'button_cancel', 'button_add', 'button_remove',
+            'text_group', 'text_default', 'text_no_sections', 'text_help', 'tab_sections', 'tab_page', 'entry_status',
+            'entry_target', 'entry_name', 'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium',
+            'entry_large', 'entry_tag', 'entry_section_title', 'entry_group_title', 'entry_h1', 'entry_sub_title',
+            'entry_meta_title', 'entry_meta_description', 'entry_top', 'entry_bottom', 'help_html', 'button_save',
+            'button_cancel', 'button_add', 'button_remove',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -55,6 +58,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         $data['status'] = !empty($settings['price_offer_status']);
+        $data['page'] = (array)($settings['price_offer_page'] ?? []) + array_fill_keys(self::PAGE, '');
 
         $data['config'] = json_encode([
             'sections'   => $this->decode($this->cleanSections($settings['price_offer_sections'] ?? [])),
@@ -104,6 +108,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         return [
             'price_offer_status'   => empty($post['price_offer_status']) ? 0 : 1,
             'price_offer_sections' => $this->cleanSections($post['price_offer_sections'] ?? []),
+            'price_offer_page'     => array_intersect_key((array)($post['price_offer_page'] ?? []), array_flip(self::PAGE)),
         ];
     }
 

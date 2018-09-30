@@ -39,117 +39,163 @@
               </select>
             </div>
           </div>
-          <div id="price-offer-sections" data-config="<?php echo htmlspecialchars($config, ENT_QUOTES, 'UTF-8'); ?>">
-            <div class="row">
-              <div class="col-sm-4">
-                <strong><?php echo $text_categories; ?></strong>
-                <div class="well well-sm price-offer-categories">
-                  <div class="checkbox" v-for="category in categories" :key="category.id">
-                    <label><input type="checkbox" v-model="selected" :value="category.id"> {{ category.name }} <span class="text-muted">({{ category.products }})</span></label>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab-sections" data-toggle="tab"><?php echo $tab_sections; ?></a></li>
+            <li><a href="#tab-page" data-toggle="tab"><?php echo $tab_page; ?></a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab-sections">
+              <div id="price-offer-sections" data-config="<?php echo htmlspecialchars($config, ENT_QUOTES, 'UTF-8'); ?>">
+                <div class="row">
+                  <div class="col-sm-4">
+                    <strong><?php echo $text_categories; ?></strong>
+                    <div class="well well-sm price-offer-categories">
+                      <div class="checkbox" v-for="category in categories" :key="category.id">
+                        <label><input type="checkbox" v-model="selected" :value="category.id"> {{ category.name }} <span class="text-muted">({{ category.products }})</span></label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-8">
+                    <fieldset>
+                      <legend><?php echo $text_add; ?></legend>
+                      <div class="form-group">
+                        <label class="col-sm-3 control-label" for="input-target"><?php echo $entry_target; ?></label>
+                        <div class="col-sm-9">
+                          <select id="input-target" v-model="target" class="form-control">
+                            <option v-for="option in targets" :value="option.value">{{ option.text }}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="col-sm-3 control-label" for="input-name"><?php echo $entry_name; ?></label>
+                        <div class="col-sm-9">
+                          <input type="text" id="input-name" v-model="name" @keydown.enter.prevent="add" class="form-control">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="col-sm-3 control-label"><?php echo $entry_discounts; ?></label>
+                        <div class="col-sm-2">
+                          <input type="text" v-model="discounts[0]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_small; ?>" class="form-control">
+                        </div>
+                        <div class="col-sm-2">
+                          <input type="text" v-model="discounts[1]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_medium; ?>" class="form-control">
+                        </div>
+                        <div class="col-sm-2">
+                          <input type="text" v-model="discounts[2]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_large; ?>" class="form-control">
+                        </div>
+                        <div class="col-sm-3">
+                          <button type="button" @click="add" class="btn btn-success btn-block"><i class="fa fa-plus"></i> <?php echo $button_add; ?></button>
+                        </div>
+                      </div>
+                    </fieldset>
+                    <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_help; ?></div>
                   </div>
                 </div>
-              </div>
-              <div class="col-sm-8">
-                <fieldset>
-                  <legend><?php echo $text_add; ?></legend>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label" for="input-target"><?php echo $entry_target; ?></label>
-                    <div class="col-sm-9">
-                      <select id="input-target" v-model="target" class="form-control">
-                        <option v-for="option in targets" :value="option.value">{{ option.text }}</option>
-                      </select>
+                <p v-if="!sections.length" class="text-center text-muted"><?php echo $text_no_sections; ?></p>
+                <div v-for="(section, s) in sections" class="panel panel-default">
+                  <div class="panel-heading clearfix">
+                    <div class="row">
+                      <div class="col-sm-2">
+                        <select :name="inputName(s, 'tag')" v-model="section.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
+                          <option v-for="tag in tags" :value="tag">{{ tag }}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-7">
+                        <input type="text" :name="inputName(s, 'title')" v-model="section.title" placeholder="<?php echo $entry_section_title; ?>" class="form-control input-sm">
+                      </div>
+                      <div class="col-sm-3 text-right">
+                        <span class="label label-default"><?php echo $text_section; ?> {{ s + 1 }}</span>
+                      </div>
                     </div>
                   </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label" for="input-name"><?php echo $entry_name; ?></label>
-                    <div class="col-sm-9">
-                      <input type="text" id="input-name" v-model="name" @keydown.enter.prevent="add" class="form-control">
+                  <div class="panel-body">
+                    <div v-for="(group, g) in section.groups" class="price-offer-group">
+                      <div class="row">
+                        <div class="col-sm-2">
+                          <select :name="inputName(s, 'groups', g, 'tag')" v-model="group.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
+                            <option v-for="tag in tags" :value="tag">{{ tag }}</option>
+                          </select>
+                        </div>
+                        <div class="col-sm-7">
+                          <input type="text" :name="inputName(s, 'groups', g, 'title')" v-model="group.title" placeholder="<?php echo $entry_group_title; ?>" class="form-control input-sm">
+                        </div>
+                        <div class="col-sm-3 text-right">
+                          <span class="label label-info"><?php echo $text_group; ?> {{ s + 1 }}.{{ g + 1 }}</span>
+                        </div>
+                      </div>
+                      <table class="table table-condensed">
+                        <thead>
+                          <tr>
+                            <td><?php echo $entry_name; ?></td>
+                            <td style="width: 25%;"><?php echo $entry_categories; ?></td>
+                            <td style="width: 9%;"><?php echo $entry_small; ?></td>
+                            <td style="width: 9%;"><?php echo $entry_medium; ?></td>
+                            <td style="width: 9%;"><?php echo $entry_large; ?></td>
+                            <td style="width: 1px;"></td>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr class="active">
+                            <td><strong><?php echo $text_default; ?></strong></td>
+                            <td></td>
+                            <td v-for="(value, i) in group.discounts"><input type="text" :name="inputName(s, 'groups', g, 'discounts', i)" v-model="group.discounts[i]" class="form-control input-sm"></td>
+                            <td></td>
+                          </tr>
+                          <tr v-for="(offer, o) in group.offers">
+                            <td>
+                              <input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'name')" v-model="offer.name" class="form-control input-sm">
+                            </td>
+                            <td>
+                              <input type="hidden" :name="inputName(s, 'groups', g, 'offers', o, 'categories')" :value="offer.categories.join(',')">
+                              <small>{{ categoryNames(offer.categories) }}</small>
+                            </td>
+                            <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" :placeholder="group.discounts[i]" class="form-control input-sm"></td>
+                            <td class="text-nowrap">
+                              <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                  <div class="form-group">
-                    <label class="col-sm-3 control-label"><?php echo $entry_discounts; ?></label>
-                    <div class="col-sm-2">
-                      <input type="text" v-model="discounts[0]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_small; ?>" class="form-control">
-                    </div>
-                    <div class="col-sm-2">
-                      <input type="text" v-model="discounts[1]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_medium; ?>" class="form-control">
-                    </div>
-                    <div class="col-sm-2">
-                      <input type="text" v-model="discounts[2]" @keydown.enter.prevent="add" placeholder="<?php echo $entry_large; ?>" class="form-control">
-                    </div>
-                    <div class="col-sm-3">
-                      <button type="button" @click="add" class="btn btn-success btn-block"><i class="fa fa-plus"></i> <?php echo $button_add; ?></button>
-                    </div>
-                  </div>
-                </fieldset>
-                <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_help; ?></div>
+                </div>
               </div>
             </div>
-            <p v-if="!sections.length" class="text-center text-muted"><?php echo $text_no_sections; ?></p>
-            <div v-for="(section, s) in sections" class="panel panel-default">
-              <div class="panel-heading clearfix">
-                <div class="row">
-                  <div class="col-sm-2">
-                    <select :name="inputName(s, 'tag')" v-model="section.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
-                      <option v-for="tag in tags" :value="tag">{{ tag }}</option>
-                    </select>
-                  </div>
-                  <div class="col-sm-7">
-                    <input type="text" :name="inputName(s, 'title')" v-model="section.title" placeholder="<?php echo $entry_section_title; ?>" class="form-control input-sm">
-                  </div>
-                  <div class="col-sm-3 text-right">
-                    <span class="label label-default"><?php echo $text_section; ?> {{ s + 1 }}</span>
-                  </div>
+            <div class="tab-pane" id="tab-page">
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-h1"><?php echo $entry_h1; ?></label>
+                <div class="col-sm-10">
+                  <input type="text" name="price_offer_page[h1]" value="<?php echo $page['h1']; ?>" id="input-h1" class="form-control">
                 </div>
               </div>
-              <div class="panel-body">
-                <div v-for="(group, g) in section.groups" class="price-offer-group">
-                  <div class="row">
-                    <div class="col-sm-2">
-                      <select :name="inputName(s, 'groups', g, 'tag')" v-model="group.tag" class="form-control input-sm" title="<?php echo $entry_tag; ?>">
-                        <option v-for="tag in tags" :value="tag">{{ tag }}</option>
-                      </select>
-                    </div>
-                    <div class="col-sm-7">
-                      <input type="text" :name="inputName(s, 'groups', g, 'title')" v-model="group.title" placeholder="<?php echo $entry_group_title; ?>" class="form-control input-sm">
-                    </div>
-                    <div class="col-sm-3 text-right">
-                      <span class="label label-info"><?php echo $text_group; ?> {{ s + 1 }}.{{ g + 1 }}</span>
-                    </div>
-                  </div>
-                  <table class="table table-condensed">
-                    <thead>
-                      <tr>
-                        <td><?php echo $entry_name; ?></td>
-                        <td style="width: 25%;"><?php echo $entry_categories; ?></td>
-                        <td style="width: 9%;"><?php echo $entry_small; ?></td>
-                        <td style="width: 9%;"><?php echo $entry_medium; ?></td>
-                        <td style="width: 9%;"><?php echo $entry_large; ?></td>
-                        <td style="width: 1px;"></td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr class="active">
-                        <td><strong><?php echo $text_default; ?></strong></td>
-                        <td></td>
-                        <td v-for="(value, i) in group.discounts"><input type="text" :name="inputName(s, 'groups', g, 'discounts', i)" v-model="group.discounts[i]" class="form-control input-sm"></td>
-                        <td></td>
-                      </tr>
-                      <tr v-for="(offer, o) in group.offers">
-                        <td>
-                          <input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'name')" v-model="offer.name" class="form-control input-sm">
-                        </td>
-                        <td>
-                          <input type="hidden" :name="inputName(s, 'groups', g, 'offers', o, 'categories')" :value="offer.categories.join(',')">
-                          <small>{{ categoryNames(offer.categories) }}</small>
-                        </td>
-                        <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" :placeholder="group.discounts[i]" class="form-control input-sm"></td>
-                        <td class="text-nowrap">
-                          <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-sub-title"><?php echo $entry_sub_title; ?></label>
+                <div class="col-sm-10">
+                  <input type="text" name="price_offer_page[sub_title]" value="<?php echo $page['sub_title']; ?>" id="input-sub-title" class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-meta-title"><?php echo $entry_meta_title; ?></label>
+                <div class="col-sm-10">
+                  <input type="text" name="price_offer_page[meta_title]" value="<?php echo $page['meta_title']; ?>" id="input-meta-title" class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-meta-description"><?php echo $entry_meta_description; ?></label>
+                <div class="col-sm-10">
+                  <textarea name="price_offer_page[meta_description]" rows="3" id="input-meta-description" class="form-control"><?php echo $page['meta_description']; ?></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-top"><span data-toggle="tooltip" title="<?php echo $help_html; ?>"><?php echo $entry_top; ?></span></label>
+                <div class="col-sm-10">
+                  <textarea name="price_offer_page[top]" rows="5" id="input-top" class="form-control"><?php echo $page['top']; ?></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-bottom"><span data-toggle="tooltip" title="<?php echo $help_html; ?>"><?php echo $entry_bottom; ?></span></label>
+                <div class="col-sm-10">
+                  <textarea name="price_offer_page[bottom]" rows="10" id="input-bottom" class="form-control"><?php echo $page['bottom']; ?></textarea>
                 </div>
               </div>
             </div>
