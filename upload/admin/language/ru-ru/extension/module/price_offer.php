@@ -13,34 +13,45 @@ $_['text_section']     = 'Раздел';
 $_['text_group']       = 'Группа';
 $_['text_default']     = 'По умолчанию';
 $_['text_no_sections'] = 'Предложений пока нет: выберите категории и добавьте первое.';
+$_['text_no_offer']    = 'Нажмите "Товары" у предложения на вкладке предложений.';
+$_['text_no_products'] = 'В этих категориях нет товаров';
+$_['text_total']       = 'Всего товаров: %s';
 $_['text_help']        = 'Раздел - заголовок над блоком групп, группа - колонка ссылок на странице, каждое предложение выгружает свои категории. Скидки в процентах идут в колонки мелкого, среднего и крупного опта, если у товара нет своих скидок за количество. Пустая скидка предложения берется из строки "По умолчанию" его группы.';
 
 $_['tab_sections'] = 'Предложения';
+$_['tab_products'] = 'Товары';
 $_['tab_page']     = 'Страница';
 
-$_['entry_status']           = 'Статус';
-$_['entry_target']           = 'Куда добавить';
-$_['entry_name']             = 'Название';
-$_['entry_categories']       = 'Категории';
-$_['entry_discounts']        = 'Скидки';
-$_['entry_small']            = 'Мелкий опт, %';
-$_['entry_medium']           = 'Средний опт, %';
-$_['entry_large']            = 'Крупный опт, %';
-$_['entry_tag']              = 'Тег';
-$_['entry_section_title']    = 'Заголовок раздела';
-$_['entry_group_title']      = 'Заголовок группы';
-$_['entry_h1']               = 'Заголовок H1';
-$_['entry_sub_title']        = 'Подзаголовок';
-$_['entry_meta_title']       = 'Meta Title';
-$_['entry_meta_description'] = 'Meta Description';
-$_['entry_top']              = 'Текст над предложениями';
-$_['entry_bottom']           = 'Текст под предложениями';
+$_['entry_status']            = 'Статус';
+$_['entry_target']            = 'Куда добавить';
+$_['entry_name']              = 'Название';
+$_['entry_categories']        = 'Категории';
+$_['entry_discounts']         = 'Скидки';
+$_['entry_small']             = 'Мелкий опт, %';
+$_['entry_medium']            = 'Средний опт, %';
+$_['entry_large']             = 'Крупный опт, %';
+$_['entry_tag']               = 'Тег';
+$_['entry_section_title']     = 'Заголовок раздела';
+$_['entry_group_title']       = 'Заголовок группы';
+$_['entry_h1']                = 'Заголовок H1';
+$_['entry_sub_title']         = 'Подзаголовок';
+$_['entry_meta_title']        = 'Meta Title';
+$_['entry_meta_description']  = 'Meta Description';
+$_['entry_top']               = 'Текст над предложениями';
+$_['entry_bottom']            = 'Текст под предложениями';
+$_['entry_product_discounts'] = 'Скидки товара';
 
 $_['help_html'] = 'Можно использовать HTML';
 
-$_['button_add'] = 'Добавить';
+$_['column_product'] = 'Товар';
+$_['column_price']   = 'Цена';
+$_['column_action']  = 'Действие';
+
+$_['button_add']      = 'Добавить';
+$_['button_products'] = 'Товары';
 
 $_['error_permission'] = 'У вас нет прав для управления этим модулем';
 $_['error_discount']   = 'Скидка "%s" у "%s": нужно число от 0 до 99';
 $_['error_categories'] = 'Выберите категории';
 $_['error_name']       = 'Укажите название';
+$_['error_load']       = 'Не удалось загрузить данные, обновите страницу';

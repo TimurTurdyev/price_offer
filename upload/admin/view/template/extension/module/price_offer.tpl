@@ -41,6 +41,7 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="active"><a href="#tab-sections" data-toggle="tab"><?php echo $tab_sections; ?></a></li>
+            <li><a href="#tab-products" data-toggle="tab"><?php echo $tab_products; ?></a></li>
             <li><a href="#tab-page" data-toggle="tab"><?php echo $tab_page; ?></a></li>
           </ul>
           <div class="tab-content">
@@ -151,6 +152,7 @@
                             </td>
                             <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" :placeholder="group.discounts[i]" class="form-control input-sm"></td>
                             <td class="text-nowrap">
+                              <button type="button" @click="showProducts(offer)" class="btn btn-primary btn-sm"><?php echo $button_products; ?></button>
                               <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
                             </td>
                           </tr>
@@ -159,6 +161,39 @@
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div class="tab-pane" id="tab-products">
+              <div id="price-offer-products">
+                <p v-if="!offer" class="text-center text-muted"><?php echo $text_no_offer; ?></p>
+                <template v-else>
+                  <h4>{{ offer.name }} <small>{{ totalText }}</small></h4>
+                  <table class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <td style="width: 1px;"></td>
+                        <td><?php echo $column_product; ?></td>
+                        <td class="text-right"><?php echo $column_price; ?></td>
+                        <td style="width: 30%;"><?php echo $entry_product_discounts; ?></td>
+                        <td style="width: 1px;"><?php echo $column_action; ?></td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="product in products" :key="product.product_id">
+                        <td><img :src="product.image" alt="" class="img-thumbnail"></td>
+                        <td>{{ product.name }}<br><small class="text-muted">{{ product.model }}</small></td>
+                        <td class="text-right">{{ product.price.toFixed(2) }}</td>
+                        <td>{{ product.discounts }}</td>
+                        <td class="text-nowrap">
+                          <a :href="editUrl(product)" target="_blank" title="<?php echo $button_edit; ?>" class="btn btn-info btn-sm"><i class="fa fa-pencil"></i></a>
+                        </td>
+                      </tr>
+                      <tr v-if="!products.length && !loading">
+                        <td colspan="5" class="text-center"><?php echo $text_no_products; ?></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </template>
               </div>
             </div>
             <div class="tab-pane" id="tab-page">
@@ -231,17 +266,59 @@ $(function () {
 
   var config = JSON.parse(root.getAttribute('data-config'));
 
+  // Общие данные двух вкладок: разделы и товары выбранного предложения.
+  var state = {
+    sections: config.sections,
+    categories: config.categories,
+    tags: config.tags,
+    selected: [],
+    target: 'section',
+    name: '',
+    discounts: ['', '', ''],
+    offer: null,
+    products: [],
+    total: 0,
+    loading: false
+  };
+
+  var products = new Vue({
+    el: '#price-offer-products',
+    data: state,
+    computed: {
+      totalText: function () {
+        return config.text.total.replace('%s', this.total);
+      }
+    },
+    methods: {
+      open: function (offer) {
+        this.offer = { name: offer.name, categories: offer.categories.join(',') };
+        this.products = [];
+        this.total = 0;
+        this.load();
+      },
+      load: function () {
+        var self = this;
+
+        this.loading = true;
+
+        $.getJSON(config.products, { categories: this.offer.categories }).done(function (json) {
+          self.total = json.total;
+          self.products = json.products;
+        }).fail(function () {
+          alert(config.text.load);
+        }).always(function () {
+          self.loading = false;
+        });
+      },
+      editUrl: function (product) {
+        return config.edit + '&product_id=' + product.product_id;
+      }
+    }
+  });
+
   new Vue({
     el: root,
-    data: {
-      sections: config.sections,
-      categories: config.categories,
-      tags: config.tags,
-      selected: [],
-      target: 'section',
-      name: '',
-      discounts: ['', '', '']
-    },
+    data: state,
     computed: {
       targets: function () {
         var targets = [{ value: 'section', text: config.text.new_section }];
@@ -300,6 +377,10 @@ $(function () {
         }
 
         this.target = 'section';
+      },
+      showProducts: function (offer) {
+        products.open(offer);
+        $('a[href="#tab-products"]').tab('show');
       },
       categoryNames: function (ids) {
         var names = {};
