@@ -168,6 +168,7 @@
                 <p v-if="!offer" class="text-center text-muted"><?php echo $text_no_offer; ?></p>
                 <template v-else>
                   <h4>{{ offer.name }} <small>{{ totalText }}</small></h4>
+                  <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $help_product_discounts; ?></div>
                   <table class="table table-bordered table-hover">
                     <thead>
                       <tr>
@@ -183,8 +184,11 @@
                         <td><img :src="product.image" alt="" class="img-thumbnail"></td>
                         <td>{{ product.name }}<br><small class="text-muted">{{ product.model }}</small></td>
                         <td class="text-right">{{ product.price.toFixed(2) }}</td>
-                        <td>{{ product.discounts }}</td>
+                        <td :class="{ 'has-success': product.state == 'saved', 'has-error': product.state == 'error' }">
+                          <input type="text" v-model="product.discounts" @input="product.state = ''" @keydown.enter.prevent="saveDiscounts(product)" placeholder="10>5|50>10" class="form-control input-sm">
+                        </td>
                         <td class="text-nowrap">
+                          <button type="button" @click="saveDiscounts(product)" title="<?php echo $button_save; ?>" class="btn btn-success btn-sm"><i class="fa fa-save"></i></button>
                           <a :href="editUrl(product)" target="_blank" title="<?php echo $button_edit; ?>" class="btn btn-info btn-sm"><i class="fa fa-pencil"></i></a>
                         </td>
                       </tr>
@@ -303,12 +307,38 @@ $(function () {
 
         $.getJSON(config.products, { categories: this.offer.categories }).done(function (json) {
           self.total = json.total;
-          self.products = json.products;
+          self.products = json.products.map(function (product) {
+            product.state = '';
+            return product;
+          });
         }).fail(function () {
           alert(config.text.load);
         }).always(function () {
           self.loading = false;
         });
+      },
+      save: function (product, fields) {
+        fields.product_id = product.product_id;
+
+        $.post(config.save, fields, null, 'json').done(function (json) {
+          if (json.error) {
+            product.state = 'error';
+            alert(json.error);
+            return;
+          }
+
+          if (json.discounts !== undefined) {
+            product.discounts = json.discounts;
+          }
+
+          product.state = 'saved';
+        }).fail(function () {
+          product.state = 'error';
+          alert(config.text.load);
+        });
+      },
+      saveDiscounts: function (product) {
+        this.save(product, { discounts: product.discounts });
       },
       editUrl: function (product) {
         return config.edit + '&product_id=' + product.product_id;

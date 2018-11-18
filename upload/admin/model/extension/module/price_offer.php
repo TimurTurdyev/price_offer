@@ -56,6 +56,21 @@ class ModelExtensionModulePriceOffer extends Model
         return $discounts;
     }
 
+    public function setDiscounts($product_id, array $discounts)
+    {
+        $customer_group_id = (int)$this->config->get('config_customer_group_id');
+
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "product_discount` WHERE product_id = '" . (int)$product_id . "' AND customer_group_id = '" . $customer_group_id . "'");
+
+        foreach ($discounts as $quantity => $percent) {
+            $this->db->query("INSERT INTO `" . DB_PREFIX . "product_discount` (product_id, customer_group_id, quantity, priority, price, date_start, date_end)
+                SELECT product_id, '" . $customer_group_id . "', '" . (int)$quantity . "', '0', ROUND(price * " . (100 - (float)$percent) . " / 100, 4), '0000-00-00', '0000-00-00'
+                FROM `" . DB_PREFIX . "product` WHERE product_id = '" . (int)$product_id . "'");
+        }
+
+        $this->cache->delete('product');
+    }
+
     private function productsFrom(array $categories)
     {
         $categories = implode(',', array_map('intval', $categories)) ?: '0';

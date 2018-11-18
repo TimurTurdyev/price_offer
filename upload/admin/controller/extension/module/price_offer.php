@@ -30,8 +30,9 @@ class ControllerExtensionModulePriceOffer extends Controller
             'tab_sections', 'tab_products', 'tab_page', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
             'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag', 'entry_section_title',
             'entry_group_title', 'entry_h1', 'entry_sub_title', 'entry_meta_title', 'entry_meta_description', 'entry_top',
-            'entry_bottom', 'entry_product_discounts', 'help_html', 'column_product', 'column_price', 'column_action',
-            'button_save', 'button_cancel', 'button_add', 'button_products', 'button_remove', 'button_edit',
+            'entry_bottom', 'entry_product_discounts', 'help_html', 'help_product_discounts', 'column_product',
+            'column_price', 'column_action', 'button_save', 'button_cancel', 'button_add', 'button_products',
+            'button_remove', 'button_edit',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -67,6 +68,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             'categories' => $this->categories(),
             'tags'       => self::TAGS,
             'products'   => $this->link('extension/module/price_offer/products'),
+            'save'       => $this->link('extension/module/price_offer/saveProduct'),
             'edit'       => $this->link('catalog/product/edit'),
             'text'       => [
                 'new_section' => $this->language->get('text_new_section'),
@@ -115,6 +117,53 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         $this->json($json);
+    }
+
+    public function saveProduct()
+    {
+        $this->load->language('extension/module/price_offer');
+        $this->load->model('extension/module/price_offer');
+
+        $product_id = (int)($this->request->post['product_id'] ?? 0);
+        $discounts = $this->parseDiscounts(html_entity_decode($this->request->post['discounts'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $json = [];
+
+        if (!$this->user->hasPermission('modify', 'extension/module/price_offer')) {
+            $json['error'] = $this->language->get('error_permission');
+        } elseif ($discounts === null) {
+            $json['error'] = $this->language->get('error_product_discounts');
+        } else {
+            $this->model_extension_module_price_offer->setDiscounts($product_id, $discounts);
+
+            $json['discounts'] = $this->formatDiscounts($discounts);
+            $json['success'] = $this->language->get('text_saved');
+        }
+
+        $this->json($json);
+    }
+
+    // "10>5|50>10" -> [10 => 5, 50 => 10]; null, если строка не в этом формате.
+    private function parseDiscounts($value)
+    {
+        $discounts = [];
+
+        foreach (explode('|', $value) as $part) {
+            $part = str_replace([' ', ','], ['', '.'], $part);
+
+            if ($part === '') {
+                continue;
+            }
+
+            if (!preg_match('/^(\d+)>(\d+(\.\d+)?)$/', $part, $match) || $match[1] < 1 || $match[2] >= 100) {
+                return null;
+            }
+
+            $discounts[(int)$match[1]] = (float)$match[2];
+        }
+
+        ksort($discounts);
+
+        return $discounts;
     }
 
     private function formatDiscounts(array $discounts)
