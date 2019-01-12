@@ -7,6 +7,18 @@ class ControllerExtensionModulePriceOffer extends Controller
 
     private $error = [];
 
+    public function install()
+    {
+        $this->load->model('extension/module/price_offer');
+        $this->model_extension_module_price_offer->install();
+    }
+
+    public function uninstall()
+    {
+        $this->load->model('extension/module/price_offer');
+        $this->model_extension_module_price_offer->uninstall();
+    }
+
     public function index()
     {
         $this->load->language('extension/module/price_offer');
@@ -26,13 +38,13 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_add', 'text_section',
-            'text_group', 'text_default', 'text_no_sections', 'text_no_offer', 'text_no_products', 'text_help',
-            'tab_sections', 'tab_products', 'tab_page', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
-            'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag', 'entry_section_title',
-            'entry_group_title', 'entry_h1', 'entry_sub_title', 'entry_meta_title', 'entry_meta_description', 'entry_top',
-            'entry_bottom', 'entry_product_discounts', 'help_html', 'help_product_discounts', 'column_product',
-            'column_price', 'column_action', 'button_save', 'button_cancel', 'button_add', 'button_products',
-            'button_remove', 'button_edit',
+            'text_group', 'text_default', 'text_no_sections', 'text_no_offer', 'text_no_products', 'text_in_offer',
+            'text_help', 'tab_sections', 'tab_products', 'tab_page', 'entry_status', 'entry_target', 'entry_name',
+            'entry_discounts', 'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag',
+            'entry_section_title', 'entry_group_title', 'entry_h1', 'entry_sub_title', 'entry_meta_title',
+            'entry_meta_description', 'entry_top', 'entry_bottom', 'entry_product_discounts', 'help_html',
+            'help_product_discounts', 'column_product', 'column_price', 'column_action', 'button_save', 'button_cancel',
+            'button_add', 'button_products', 'button_remove', 'button_edit',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -110,6 +122,7 @@ class ControllerExtensionModulePriceOffer extends Controller
                     'image'      => $this->model_tool_image->resize($image, 40, 40),
                     'price'      => (float)$row['price'],
                     'discounts'  => $this->formatDiscounts($discounts[$row['product_id']]),
+                    'excluded'   => (bool)$row['excluded'],
                 ];
             }
 
@@ -119,23 +132,34 @@ class ControllerExtensionModulePriceOffer extends Controller
         $this->json($json);
     }
 
+    // Скидки и участие в выгрузке сохраняются по отдельности: приходит только то поле, которое меняли.
     public function saveProduct()
     {
         $this->load->language('extension/module/price_offer');
         $this->load->model('extension/module/price_offer');
 
         $product_id = (int)($this->request->post['product_id'] ?? 0);
-        $discounts = $this->parseDiscounts(html_entity_decode($this->request->post['discounts'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $discounts = null;
         $json = [];
+
+        if (isset($this->request->post['discounts'])) {
+            $discounts = $this->parseDiscounts(html_entity_decode($this->request->post['discounts'], ENT_QUOTES, 'UTF-8'));
+        }
 
         if (!$this->user->hasPermission('modify', 'extension/module/price_offer')) {
             $json['error'] = $this->language->get('error_permission');
-        } elseif ($discounts === null) {
+        } elseif (isset($this->request->post['discounts']) && $discounts === null) {
             $json['error'] = $this->language->get('error_product_discounts');
         } else {
-            $this->model_extension_module_price_offer->setDiscounts($product_id, $discounts);
+            if ($discounts !== null) {
+                $this->model_extension_module_price_offer->setDiscounts($product_id, $discounts);
+                $json['discounts'] = $this->formatDiscounts($discounts);
+            }
 
-            $json['discounts'] = $this->formatDiscounts($discounts);
+            if (isset($this->request->post['excluded'])) {
+                $this->model_extension_module_price_offer->setExcluded($product_id, !empty($this->request->post['excluded']));
+            }
+
             $json['success'] = $this->language->get('text_saved');
         }
 

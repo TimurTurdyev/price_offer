@@ -1,6 +1,19 @@
 <?php
 class ModelExtensionModulePriceOffer extends Model
 {
+    public function install()
+    {
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "price_offer_exclude` (
+            `product_id` INT(11) NOT NULL,
+            PRIMARY KEY (`product_id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8");
+    }
+
+    public function uninstall()
+    {
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "price_offer_exclude`");
+    }
+
     public function getCategories()
     {
         $query = $this->db->query("SELECT cp.category_id,
@@ -17,7 +30,7 @@ class ModelExtensionModulePriceOffer extends Model
 
     public function getProducts(array $categories, $start, $limit)
     {
-        $query = $this->db->query("SELECT p.product_id, pd.name, p.model, p.image, p.price"
+        $query = $this->db->query("SELECT p.product_id, pd.name, p.model, p.image, p.price, e.product_id IS NOT NULL AS excluded"
             . $this->productsFrom($categories) . "
             ORDER BY pd.name, p.product_id
             LIMIT " . (int)$start . ", " . (int)$limit);
@@ -71,12 +84,22 @@ class ModelExtensionModulePriceOffer extends Model
         $this->cache->delete('product');
     }
 
+    public function setExcluded($product_id, $excluded)
+    {
+        if ($excluded) {
+            $this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "price_offer_exclude` SET product_id = '" . (int)$product_id . "'");
+        } else {
+            $this->db->query("DELETE FROM `" . DB_PREFIX . "price_offer_exclude` WHERE product_id = '" . (int)$product_id . "'");
+        }
+    }
+
     private function productsFrom(array $categories)
     {
         $categories = implode(',', array_map('intval', $categories)) ?: '0';
 
         return " FROM `" . DB_PREFIX . "product` p
             LEFT JOIN `" . DB_PREFIX . "product_description` pd ON (p.product_id = pd.product_id)
+            LEFT JOIN `" . DB_PREFIX . "price_offer_exclude` e ON (p.product_id = e.product_id)
             WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
                 AND p.product_id IN (SELECT product_id FROM `" . DB_PREFIX . "product_to_category` WHERE category_id IN (" . $categories . "))";
     }

@@ -176,24 +176,26 @@
                         <td><?php echo $column_product; ?></td>
                         <td class="text-right"><?php echo $column_price; ?></td>
                         <td style="width: 30%;"><?php echo $entry_product_discounts; ?></td>
+                        <td class="text-center"><?php echo $text_in_offer; ?></td>
                         <td style="width: 1px;"><?php echo $column_action; ?></td>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="product in products" :key="product.product_id">
+                      <tr v-for="product in products" :key="product.product_id" :class="{ 'text-muted': product.excluded }">
                         <td><img :src="product.image" alt="" class="img-thumbnail"></td>
                         <td>{{ product.name }}<br><small class="text-muted">{{ product.model }}</small></td>
                         <td class="text-right">{{ product.price.toFixed(2) }}</td>
                         <td :class="{ 'has-success': product.state == 'saved', 'has-error': product.state == 'error' }">
                           <input type="text" v-model="product.discounts" @input="product.state = ''" @keydown.enter.prevent="saveDiscounts(product)" placeholder="10>5|50>10" class="form-control input-sm">
                         </td>
+                        <td class="text-center"><input type="checkbox" :checked="!product.excluded" @change="saveExcluded(product, !$event.target.checked)"></td>
                         <td class="text-nowrap">
                           <button type="button" @click="saveDiscounts(product)" title="<?php echo $button_save; ?>" class="btn btn-success btn-sm"><i class="fa fa-save"></i></button>
                           <a :href="editUrl(product)" target="_blank" title="<?php echo $button_edit; ?>" class="btn btn-info btn-sm"><i class="fa fa-pencil"></i></a>
                         </td>
                       </tr>
                       <tr v-if="!products.length && !loading">
-                        <td colspan="5" class="text-center"><?php echo $text_no_products; ?></td>
+                        <td colspan="6" class="text-center"><?php echo $text_no_products; ?></td>
                       </tr>
                     </tbody>
                   </table>
@@ -331,6 +333,10 @@ $(function () {
             product.discounts = json.discounts;
           }
 
+          if (fields.excluded !== undefined) {
+            product.excluded = !!fields.excluded;
+          }
+
           product.state = 'saved';
         }).fail(function () {
           product.state = 'error';
@@ -339,6 +345,9 @@ $(function () {
       },
       saveDiscounts: function (product) {
         this.save(product, { discounts: product.discounts });
+      },
+      saveExcluded: function (product, excluded) {
+        this.save(product, { excluded: excluded ? 1 : 0 });
       },
       editUrl: function (product) {
         return config.edit + '&product_id=' + product.product_id;
