@@ -1,7 +1,7 @@
 <?php
 class ControllerExtensionModulePriceOffer extends Controller
 {
-    const LIMIT = 100;
+    const PAGE_SIZE = 50;
     const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'];
     const PAGE = ['h1', 'sub_title', 'meta_title', 'meta_description', 'top', 'bottom'];
 
@@ -79,6 +79,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             'sections'   => $this->decode($this->cleanSections($settings['price_offer_sections'] ?? [])),
             'categories' => $this->categories(),
             'tags'       => self::TAGS,
+            'limit'      => self::PAGE_SIZE,
             'products'   => $this->link('extension/module/price_offer/products'),
             'save'       => $this->link('extension/module/price_offer/saveProduct'),
             'edit'       => $this->link('catalog/product/edit'),
@@ -106,10 +107,11 @@ class ControllerExtensionModulePriceOffer extends Controller
         $this->load->model('tool/image');
 
         $categories = $this->ids($this->request->get['categories'] ?? '');
+        $page = max(1, (int)($this->request->get['page'] ?? 1));
         $json = ['products' => [], 'total' => 0];
 
         if ($categories) {
-            $rows = $this->model_extension_module_price_offer->getProducts($categories, 0, self::LIMIT);
+            $rows = $this->model_extension_module_price_offer->getProducts($categories, ($page - 1) * self::PAGE_SIZE, self::PAGE_SIZE);
             $discounts = $this->model_extension_module_price_offer->getDiscounts(array_column($rows, 'product_id'));
 
             foreach ($rows as $row) {

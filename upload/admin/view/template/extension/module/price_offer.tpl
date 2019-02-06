@@ -199,6 +199,7 @@
                       </tr>
                     </tbody>
                   </table>
+                  <price-offer-pager :page="page" :pages="pages" @change="load"></price-offer-pager>
                 </template>
               </div>
             </div>
@@ -284,13 +285,48 @@ $(function () {
     offer: null,
     products: [],
     total: 0,
+    page: 1,
     loading: false
   };
+
+  Vue.component('price-offer-pager', {
+    props: ['page', 'pages'],
+    computed: {
+      numbers: function () {
+        var numbers = [];
+
+        for (var n = Math.max(1, this.page - 2); n <= Math.min(this.pages, this.page + 2); n++) {
+          numbers.push(n);
+        }
+
+        return numbers;
+      }
+    },
+    methods: {
+      go: function (page) {
+        if (page >= 1 && page <= this.pages && page !== this.page) {
+          this.$emit('change', page);
+        }
+      }
+    },
+    template: '<ul v-if="pages > 1" class="pagination">' +
+      '<li :class="{ disabled: page == 1 }"><a href="#" @click.prevent="go(page - 1)">&laquo;</a></li>' +
+      '<li v-if="numbers[0] > 1"><a href="#" @click.prevent="go(1)">1</a></li>' +
+      '<li v-if="numbers[0] > 2" class="disabled"><span>...</span></li>' +
+      '<li v-for="n in numbers" :class="{ active: n == page }"><a href="#" @click.prevent="go(n)">{{ n }}</a></li>' +
+      '<li v-if="numbers[numbers.length - 1] < pages - 1" class="disabled"><span>...</span></li>' +
+      '<li v-if="numbers[numbers.length - 1] < pages"><a href="#" @click.prevent="go(pages)">{{ pages }}</a></li>' +
+      '<li :class="{ disabled: page == pages }"><a href="#" @click.prevent="go(page + 1)">&raquo;</a></li>' +
+      '</ul>'
+  });
 
   var products = new Vue({
     el: '#price-offer-products',
     data: state,
     computed: {
+      pages: function () {
+        return Math.ceil(this.total / config.limit);
+      },
       totalText: function () {
         return config.text.total.replace('%s', this.total);
       }
@@ -300,14 +336,15 @@ $(function () {
         this.offer = { name: offer.name, categories: offer.categories.join(',') };
         this.products = [];
         this.total = 0;
-        this.load();
+        this.load(1);
       },
-      load: function () {
+      load: function (page) {
         var self = this;
 
         this.loading = true;
 
-        $.getJSON(config.products, { categories: this.offer.categories }).done(function (json) {
+        $.getJSON(config.products, { categories: this.offer.categories, page: page }).done(function (json) {
+          self.page = page;
           self.total = json.total;
           self.products = json.products.map(function (product) {
             product.state = '';
