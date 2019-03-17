@@ -49,9 +49,13 @@
               <div id="price-offer-sections" data-config="<?php echo htmlspecialchars($config, ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="row">
                   <div class="col-sm-4">
-                    <strong><?php echo $text_categories; ?></strong>
+                    <div class="clearfix">
+                      <strong class="pull-left"><?php echo $text_categories; ?></strong>
+                      <span class="pull-right"><a href="#" @click.prevent="selectAll"><?php echo $text_select_all; ?></a> / <a href="#" @click.prevent="selected = []"><?php echo $text_select_none; ?></a></span>
+                    </div>
+                    <input type="text" v-model="filter" placeholder="<?php echo $text_filter; ?>" class="form-control input-sm price-offer-filter">
                     <div class="well well-sm price-offer-categories">
-                      <div class="checkbox" v-for="category in categories" :key="category.id">
+                      <div class="checkbox" v-for="category in visibleCategories" :key="category.id">
                         <label><input type="checkbox" v-model="selected" :value="category.id"> {{ category.name }} <span class="text-muted">({{ category.products }})</span></label>
                       </div>
                     </div>
@@ -248,6 +252,9 @@
   </div>
 </div>
 <style>
+.price-offer-filter {
+  margin: 8px 0;
+}
 .price-offer-categories {
   height: 320px;
   overflow-y: auto;
@@ -278,6 +285,7 @@ $(function () {
     sections: config.sections,
     categories: config.categories,
     tags: config.tags,
+    filter: '',
     selected: [],
     target: 'section',
     name: '',
@@ -396,6 +404,13 @@ $(function () {
     el: root,
     data: state,
     computed: {
+      visibleCategories: function () {
+        var filter = this.filter.toLowerCase();
+
+        return this.categories.filter(function (category) {
+          return category.name.toLowerCase().indexOf(filter) !== -1;
+        });
+      },
       targets: function () {
         var targets = [{ value: 'section', text: config.text.new_section }];
 
@@ -411,6 +426,11 @@ $(function () {
       }
     },
     methods: {
+      selectAll: function () {
+        this.selected = this.visibleCategories.map(function (category) {
+          return category.id;
+        });
+      },
       add: function () {
         if (!this.selected.length) {
           alert(config.text.categories);
