@@ -33,6 +33,11 @@ class ControllerExtensionModulePriceOffer extends Controller
         $data['top'] = html_entity_decode($page['top'], ENT_QUOTES, 'UTF-8');
         $data['bottom'] = html_entity_decode($page['bottom'], ENT_QUOTES, 'UTF-8');
         $data['sections'] = $this->sections();
+        $data['send'] = $this->url->link('extension/module/price_offer/send');
+
+        foreach (['text_send', 'text_choose', 'entry_offer', 'entry_email', 'button_send'] as $key) {
+            $data[$key] = $this->language->get($key);
+        }
 
         foreach (['column_left', 'column_right', 'content_top', 'content_bottom', 'footer', 'header'] as $part) {
             $data[$part] = $this->load->controller('common/' . $part);
@@ -67,6 +72,40 @@ class ControllerExtensionModulePriceOffer extends Controller
         $this->response->setOutput(file_get_contents($file));
 
         $this->removeFile($file);
+    }
+
+    public function send()
+    {
+        $this->load->language('extension/module/price_offer');
+
+        $offer = $this->offer($this->request->post['offer'] ?? 0);
+        $email = trim(html_entity_decode($this->request->post['email'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $json = [];
+
+        if ($this->request->server['REQUEST_METHOD'] != 'POST' || !$offer) {
+            $json['error'] = $this->language->get('error_offer');
+        } elseif (utf8_strlen($email) > 96 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $json['error'] = $this->language->get('error_email');
+        } else {
+            $file = '';
+
+            try {
+                $file = $this->export($offer);
+                $this->mail($email, $offer['name'], $file);
+
+                $json['success'] = sprintf($this->language->get('text_sent'), htmlspecialchars($email, ENT_QUOTES, 'UTF-8'));
+            } catch (Exception $e) {
+                $this->log->write('Price offer: ' . $e->getMessage());
+                $json['error'] = $this->language->get('error_file');
+            }
+
+            if ($file) {
+                $this->removeFile($file);
+            }
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
     }
 
     private function notFound()
@@ -131,6 +170,7 @@ class ControllerExtensionModulePriceOffer extends Controller
         return $sections;
     }
 
+    // name - подпись ссылки, title - полное имя предложения для списка отправки на почту.
     private function link($key)
     {
         $offer = $this->offer($key);
@@ -140,9 +180,10 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         return [
-            'key'  => $key,
-            'name' => htmlspecialchars($offer['caption'], ENT_COMPAT, 'UTF-8'),
-            'href' => $this->url->link('extension/module/price_offer/download', 'offer=' . $key),
+            'key'   => $key,
+            'name'  => htmlspecialchars($offer['caption'], ENT_COMPAT, 'UTF-8'),
+            'title' => htmlspecialchars($offer['name'], ENT_COMPAT, 'UTF-8'),
+            'href'  => $this->url->link('extension/module/price_offer/download', 'offer=' . $key),
         ];
     }
 
@@ -304,5 +345,25 @@ class ControllerExtensionModulePriceOffer extends Controller
         $position = strpos($url, '/image/cache/');
 
         return $position === false ? DIR_IMAGE . $image : DIR_IMAGE . rawurldecode(substr($url, $position + 7));
+    }
+
+    private function mail($email, $subject, $file)
+    {
+        $mail = new Mail();
+        $mail->protocol = $this->config->get('config_mail_protocol');
+        $mail->parameter = $this->config->get('config_mail_parameter');
+        $mail->smtp_hostname = $this->config->get('config_mail_smtp_hostname');
+        $mail->smtp_username = $this->config->get('config_mail_smtp_username');
+        $mail->smtp_password = html_entity_decode($this->config->get('config_mail_smtp_password'), ENT_QUOTES, 'UTF-8');
+        $mail->smtp_port = $this->config->get('config_mail_smtp_port');
+        $mail->smtp_timeout = $this->config->get('config_mail_smtp_timeout');
+
+        $mail->setTo($email);
+        $mail->setFrom($this->config->get('config_email'));
+        $mail->setSender(html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8'));
+        $mail->setSubject(sprintf($this->language->get('mail_subject'), $subject));
+        $mail->setText($this->language->get('mail_text'));
+        $mail->addAttachment($file);
+        $mail->send();
     }
 }
