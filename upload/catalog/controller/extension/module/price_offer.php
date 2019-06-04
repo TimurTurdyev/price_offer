@@ -5,6 +5,7 @@ require_once DIR_SYSTEM . 'library/price_offer/sheet.php';
 class ControllerExtensionModulePriceOffer extends Controller
 {
     const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'];
+    const SEND_INTERVAL = 30;
 
     public function index()
     {
@@ -80,12 +81,15 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         $offer = $this->offer($this->request->post['offer'] ?? 0);
         $email = trim(html_entity_decode($this->request->post['email'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $sent = $this->session->data['price_offer_sent'] ?? 0;
         $json = [];
 
         if ($this->request->server['REQUEST_METHOD'] != 'POST' || !$offer) {
             $json['error'] = $this->language->get('error_offer');
         } elseif (utf8_strlen($email) > 96 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $json['error'] = $this->language->get('error_email');
+        } elseif (time() - $sent < self::SEND_INTERVAL) {
+            $json['error'] = $this->language->get('error_wait');
         } else {
             $file = '';
 
@@ -93,6 +97,7 @@ class ControllerExtensionModulePriceOffer extends Controller
                 $file = $this->export($offer);
                 $this->mail($email, $offer['name'], $file);
 
+                $this->session->data['price_offer_sent'] = time();
                 $json['success'] = sprintf($this->language->get('text_sent'), htmlspecialchars($email, ENT_QUOTES, 'UTF-8'));
             } catch (Exception $e) {
                 $this->log->write('Price offer: ' . $e->getMessage());
