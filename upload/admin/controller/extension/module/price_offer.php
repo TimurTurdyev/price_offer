@@ -40,12 +40,12 @@ class ControllerExtensionModulePriceOffer extends Controller
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_filter',
             'text_select_all', 'text_select_none', 'text_add', 'text_section', 'text_group', 'text_default',
             'text_no_sections', 'text_no_offer', 'text_no_products', 'text_in_offer', 'text_help', 'tab_sections',
-            'tab_products', 'tab_page', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
+            'tab_products', 'tab_page', 'tab_file', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
             'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag', 'entry_section_title',
             'entry_group_title', 'entry_h1', 'entry_sub_title', 'entry_meta_title', 'entry_meta_description', 'entry_top',
-            'entry_bottom', 'entry_product_discounts', 'help_html', 'help_product_discounts', 'column_product',
-            'column_price', 'column_action', 'button_save', 'button_cancel', 'button_add', 'button_products',
-            'button_remove', 'button_edit',
+            'entry_bottom', 'entry_company', 'entry_filename', 'entry_product_discounts', 'help_html', 'help_company',
+            'help_filename', 'help_product_discounts', 'column_product', 'column_price', 'column_action', 'button_save',
+            'button_cancel', 'button_add', 'button_products', 'button_remove', 'button_edit',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }
@@ -75,6 +75,8 @@ class ControllerExtensionModulePriceOffer extends Controller
 
         $data['status'] = !empty($settings['price_offer_status']);
         $data['page'] = (array)($settings['price_offer_page'] ?? []) + array_fill_keys(self::PAGE, '');
+        $data['company'] = $settings['price_offer_company'] ?? '';
+        $data['filename'] = $settings['price_offer_filename'] ?? '';
 
         $data['config'] = json_encode([
             'sections'   => $this->decode($this->cleanSections($settings['price_offer_sections'] ?? [])),
@@ -222,6 +224,10 @@ class ControllerExtensionModulePriceOffer extends Controller
             }
         }
 
+        if (!preg_match('/^[a-z0-9_-]*$/i', $this->request->post['price_offer_filename'] ?? '')) {
+            $this->error[] = $this->language->get('error_filename');
+        }
+
         return !$this->error;
     }
 
@@ -233,6 +239,8 @@ class ControllerExtensionModulePriceOffer extends Controller
             'price_offer_status'   => empty($post['price_offer_status']) ? 0 : 1,
             'price_offer_sections' => $this->cleanSections($post['price_offer_sections'] ?? []),
             'price_offer_page'     => array_intersect_key((array)($post['price_offer_page'] ?? []), array_flip(self::PAGE)),
+            'price_offer_company'  => trim($post['price_offer_company'] ?? ''),
+            'price_offer_filename' => trim($post['price_offer_filename'] ?? ''),
         ];
     }
 

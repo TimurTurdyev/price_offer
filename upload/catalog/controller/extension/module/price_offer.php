@@ -301,15 +301,20 @@ class ControllerExtensionModulePriceOffer extends Controller
 
     private function fileName()
     {
-        return 'price-offer-' . date('Y-m-d') . '.xlsx';
+        return ($this->config->get('price_offer_filename') ?: 'price-offer') . '-' . date('Y-m-d') . '.xlsx';
     }
 
     private function company()
     {
-        return [
-            html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8'),
-            html_entity_decode($this->config->get('config_address'), ENT_QUOTES, 'UTF-8'),
-        ];
+        $lines = array_filter(array_map('trim', explode("\n", (string)$this->config->get('price_offer_company'))), 'strlen');
+
+        if (!$lines) {
+            $lines = [$this->config->get('config_name'), $this->config->get('config_address')];
+        }
+
+        return array_map(function ($line) {
+            return html_entity_decode($line, ENT_QUOTES, 'UTF-8');
+        }, $lines);
     }
 
     private function contacts()

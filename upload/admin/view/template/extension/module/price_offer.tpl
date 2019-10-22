@@ -43,6 +43,7 @@
             <li class="active"><a href="#tab-sections" data-toggle="tab"><?php echo $tab_sections; ?></a></li>
             <li><a href="#tab-products" data-toggle="tab"><?php echo $tab_products; ?></a></li>
             <li><a href="#tab-page" data-toggle="tab"><?php echo $tab_page; ?></a></li>
+            <li><a href="#tab-file" data-toggle="tab"><?php echo $tab_file; ?></a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="tab-sections">
@@ -242,6 +243,20 @@
                 <label class="col-sm-2 control-label" for="input-bottom"><span data-toggle="tooltip" title="<?php echo $help_html; ?>"><?php echo $entry_bottom; ?></span></label>
                 <div class="col-sm-10">
                   <textarea name="price_offer_page[bottom]" rows="10" id="input-bottom" class="form-control"><?php echo $page['bottom']; ?></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane" id="tab-file">
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-company"><span data-toggle="tooltip" title="<?php echo $help_company; ?>"><?php echo $entry_company; ?></span></label>
+                <div class="col-sm-10">
+                  <textarea name="price_offer_company" rows="4" id="input-company" class="form-control"><?php echo $company; ?></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-filename"><span data-toggle="tooltip" title="<?php echo $help_filename; ?>"><?php echo $entry_filename; ?></span></label>
+                <div class="col-sm-10">
+                  <input type="text" name="price_offer_filename" value="<?php echo $filename; ?>" placeholder="price-offer" id="input-filename" class="form-control">
                 </div>
               </div>
             </div>
