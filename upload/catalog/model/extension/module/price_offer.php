@@ -60,10 +60,12 @@ class ModelExtensionModulePriceOffer extends Model
 
     private function addOptions(array &$products)
     {
+        $language_id = (int)$this->config->get('config_language_id');
+
         $query = $this->db->query("SELECT pov.product_id, od.name AS `option`, ovd.name AS value, pov.price, pov.price_prefix
             FROM `" . DB_PREFIX . "product_option_value` pov
-            LEFT JOIN `" . DB_PREFIX . "option_description` od ON (pov.option_id = od.option_id)
-            LEFT JOIN `" . DB_PREFIX . "option_value_description` ovd ON (pov.option_value_id = ovd.option_value_id)
+            LEFT JOIN `" . DB_PREFIX . "option_description` od ON (pov.option_id = od.option_id AND od.language_id = '" . $language_id . "')
+            LEFT JOIN `" . DB_PREFIX . "option_value_description` ovd ON (pov.option_value_id = ovd.option_value_id AND ovd.language_id = '" . $language_id . "')
             WHERE pov.product_id IN (" . implode(',', array_keys($products)) . ")
             ORDER BY pov.product_id, od.name, pov.price");
 
