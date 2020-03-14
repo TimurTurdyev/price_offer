@@ -142,14 +142,14 @@ class ControllerExtensionModulePriceOffer extends Controller
     {
         $sections = [];
 
-        foreach ((array)$this->config->get('price_offer_sections') as $s => $section) {
+        foreach ((array)$this->config->get('price_offer_sections') as $section) {
             $groups = [];
 
-            foreach ((array)($section['groups'] ?? []) as $g => $group) {
+            foreach ((array)($section['groups'] ?? []) as $group) {
                 $links = [];
 
-                foreach (array_keys((array)($group['offers'] ?? [])) as $o) {
-                    if ($link = $this->link($s . '.' . $g . '.' . $o)) {
+                foreach ((array)($group['offers'] ?? []) as $offer) {
+                    if ($link = $this->link($offer['id'] ?? 0)) {
                         $links[] = $link;
                     }
                 }
@@ -197,20 +197,19 @@ class ControllerExtensionModulePriceOffer extends Controller
         return in_array($tag, self::TAGS, true) ? $tag : $default;
     }
 
-    // offer=раздел.группа.предложение - номера по порядку в настройках.
-    private function offer($key)
+    private function offer($id)
     {
-        $path = explode('.', (string)$key);
-        $sections = (array)$this->config->get('price_offer_sections');
-
-        if (count($path) != 3 || !isset($sections[$path[0]]['groups'][$path[1]]['offers'][$path[2]])) {
-            return null;
+        foreach ((array)$this->config->get('price_offer_sections') as $section) {
+            foreach ((array)($section['groups'] ?? []) as $group) {
+                foreach ((array)($group['offers'] ?? []) as $offer) {
+                    if ($id && (int)($offer['id'] ?? 0) === (int)$id) {
+                        return $this->prepare($section, $group, $offer);
+                    }
+                }
+            }
         }
 
-        $section = $sections[$path[0]];
-        $group = $section['groups'][$path[1]];
-
-        return $this->prepare($section, $group, $group['offers'][$path[2]]);
+        return null;
     }
 
     // Имя предложения собирается из заголовков раздела и группы, пустые скидки берутся у группы.

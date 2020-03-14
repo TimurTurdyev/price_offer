@@ -257,6 +257,7 @@ class ControllerExtensionModulePriceOffer extends Controller
 
                 foreach ((array)($group['offers'] ?? []) as $offer) {
                     $offers[] = [
+                        'id'         => (int)($offer['id'] ?? 0),
                         'name'       => trim($offer['name'] ?? ''),
                         'categories' => $this->ids($offer['categories'] ?? ''),
                         'discounts'  => $this->cleanDiscounts($offer['discounts'] ?? []),
@@ -282,7 +283,7 @@ class ControllerExtensionModulePriceOffer extends Controller
             }
         }
 
-        return $clean;
+        return $this->numberOffers($clean);
     }
 
     // Скидки мелкого, среднего и крупного опта в процентах, пустая строка - не задана.
@@ -296,6 +297,31 @@ class ControllerExtensionModulePriceOffer extends Controller
         }
 
         return $clean;
+    }
+
+    // По id витрина строит ссылки, поэтому новым и повторившимся предложениям выдается свободный номер.
+    private function numberOffers(array $sections)
+    {
+        $max = 0;
+        $used = [];
+
+        foreach ($sections as $section) {
+            foreach ($section['groups'] as $group) {
+                $max = max($max, max(array_column($group['offers'], 'id')));
+            }
+        }
+
+        foreach ($sections as $s => $section) {
+            foreach ($section['groups'] as $g => $group) {
+                foreach ($group['offers'] as $o => $offer) {
+                    $id = $offer['id'] < 1 || isset($used[$offer['id']]) ? ++$max : $offer['id'];
+                    $sections[$s]['groups'][$g]['offers'][$o]['id'] = $id;
+                    $used[$id] = true;
+                }
+            }
+        }
+
+        return $sections;
     }
 
     private function tag($tag, $default)

@@ -147,8 +147,9 @@
                             <td v-for="(value, i) in group.discounts"><input type="text" :name="inputName(s, 'groups', g, 'discounts', i)" v-model="group.discounts[i]" class="form-control input-sm"></td>
                             <td></td>
                           </tr>
-                          <tr v-for="(offer, o) in group.offers">
+                          <tr v-for="(offer, o) in group.offers" :key="offer.id">
                             <td>
+                              <input type="hidden" :name="inputName(s, 'groups', g, 'offers', o, 'id')" :value="offer.id">
                               <input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'name')" v-model="offer.name" class="form-control input-sm">
                             </td>
                             <td>
@@ -457,7 +458,7 @@ $(function () {
           return;
         }
 
-        var offer = { name: this.name.trim(), categories: this.selected.slice(), discounts: this.discounts.slice() };
+        var offer = { id: this.nextId(), name: this.name.trim(), categories: this.selected.slice(), discounts: this.discounts.slice() };
         var group = { title: '', tag: 'h4', discounts: ['', '', ''], offers: [offer] };
         var path = this.target.split('.');
 
@@ -472,6 +473,19 @@ $(function () {
         this.selected = [];
         this.name = '';
         this.discounts = ['', '', ''];
+      },
+      nextId: function () {
+        var max = 0;
+
+        this.sections.forEach(function (section) {
+          section.groups.forEach(function (group) {
+            group.offers.forEach(function (offer) {
+              max = Math.max(max, offer.id);
+            });
+          });
+        });
+
+        return max + 1;
       },
       // Пустые группа и раздел не сохраняются, поэтому удаляются вместе с последним предложением.
       removeOffer: function (s, g, o) {
