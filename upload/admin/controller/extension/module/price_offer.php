@@ -39,13 +39,15 @@ class ControllerExtensionModulePriceOffer extends Controller
         foreach ([
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_categories', 'text_filter',
             'text_select_all', 'text_select_none', 'text_add', 'text_section', 'text_group', 'text_default',
-            'text_no_sections', 'text_no_offer', 'text_no_products', 'text_in_offer', 'text_help', 'tab_sections',
-            'tab_products', 'tab_page', 'tab_file', 'entry_status', 'entry_target', 'entry_name', 'entry_discounts',
-            'entry_categories', 'entry_small', 'entry_medium', 'entry_large', 'entry_tag', 'entry_section_title',
-            'entry_group_title', 'entry_h1', 'entry_sub_title', 'entry_meta_title', 'entry_meta_description', 'entry_top',
-            'entry_bottom', 'entry_company', 'entry_filename', 'entry_product_discounts', 'help_html', 'help_company',
-            'help_filename', 'help_product_discounts', 'column_product', 'column_price', 'column_action', 'button_save',
-            'button_cancel', 'button_add', 'button_products', 'button_remove', 'button_edit',
+            'text_no_sections', 'text_no_offer', 'text_no_products', 'text_in_offer', 'text_help',
+            'tab_sections', 'tab_products', 'tab_page', 'tab_file',
+            'entry_status', 'entry_target', 'entry_name', 'entry_discounts', 'entry_categories', 'entry_small',
+            'entry_medium', 'entry_large', 'entry_tag', 'entry_section_title', 'entry_group_title', 'entry_h1',
+            'entry_sub_title', 'entry_meta_title', 'entry_meta_description', 'entry_top', 'entry_bottom',
+            'entry_company', 'entry_filename', 'entry_product_discounts', 'help_html', 'help_company',
+            'help_filename', 'help_product_discounts', 'column_product', 'column_price', 'column_action',
+            'button_save', 'button_cancel', 'button_add', 'button_products', 'button_remove', 'button_edit',
+            'button_up', 'button_down',
         ] as $key) {
             $data[$key] = $this->language->get($key);
         }

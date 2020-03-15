@@ -60,6 +60,8 @@ $_['column_action']  = 'Действие';
 
 $_['button_add']      = 'Добавить';
 $_['button_products'] = 'Товары';
+$_['button_up']       = 'Выше';
+$_['button_down']     = 'Ниже';
 
 $_['error_permission']        = 'У вас нет прав для управления этим модулем';
 $_['error_discount']          = 'Скидка "%s" у "%s": нужно число от 0 до 99';

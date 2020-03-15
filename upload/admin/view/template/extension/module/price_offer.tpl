@@ -109,7 +109,9 @@
                       <div class="col-sm-7">
                         <input type="text" :name="inputName(s, 'title')" v-model="section.title" placeholder="<?php echo $entry_section_title; ?>" class="form-control input-sm">
                       </div>
-                      <div class="col-sm-3 text-right">
+                      <div class="col-sm-3 text-right text-nowrap">
+                        <button type="button" @click="move(sections, s, -1)" :disabled="s == 0" title="<?php echo $button_up; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
+                        <button type="button" @click="move(sections, s, 1)" :disabled="s == sections.length - 1" title="<?php echo $button_down; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
                         <span class="label label-default"><?php echo $text_section; ?> {{ s + 1 }}</span>
                       </div>
                     </div>
@@ -125,7 +127,9 @@
                         <div class="col-sm-7">
                           <input type="text" :name="inputName(s, 'groups', g, 'title')" v-model="group.title" placeholder="<?php echo $entry_group_title; ?>" class="form-control input-sm">
                         </div>
-                        <div class="col-sm-3 text-right">
+                        <div class="col-sm-3 text-right text-nowrap">
+                          <button type="button" @click="move(section.groups, g, -1)" :disabled="g == 0" title="<?php echo $button_up; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
+                          <button type="button" @click="move(section.groups, g, 1)" :disabled="g == section.groups.length - 1" title="<?php echo $button_down; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
                           <span class="label label-info"><?php echo $text_group; ?> {{ s + 1 }}.{{ g + 1 }}</span>
                         </div>
                       </div>
@@ -158,6 +162,8 @@
                             </td>
                             <td v-for="(value, i) in offer.discounts"><input type="text" :name="inputName(s, 'groups', g, 'offers', o, 'discounts', i)" v-model="offer.discounts[i]" :placeholder="group.discounts[i]" class="form-control input-sm"></td>
                             <td class="text-nowrap">
+                              <button type="button" @click="move(group.offers, o, -1)" :disabled="o == 0" title="<?php echo $button_up; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
+                              <button type="button" @click="move(group.offers, o, 1)" :disabled="o == group.offers.length - 1" title="<?php echo $button_down; ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
                               <button type="button" @click="showProducts(offer)" class="btn btn-primary btn-sm"><?php echo $button_products; ?></button>
                               <button type="button" @click="removeOffer(s, g, o)" title="<?php echo $button_remove; ?>" class="btn btn-danger btn-sm"><i class="fa fa-minus-circle"></i></button>
                             </td>
@@ -502,6 +508,9 @@ $(function () {
         }
 
         this.target = 'section';
+      },
+      move: function (list, index, step) {
+        list.splice(index + step, 0, list.splice(index, 1)[0]);
       },
       showProducts: function (offer) {
         products.open(offer);
