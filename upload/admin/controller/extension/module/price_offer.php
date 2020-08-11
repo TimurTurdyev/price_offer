@@ -26,7 +26,8 @@ class ControllerExtensionModulePriceOffer extends Controller
         $this->load->model('extension/module/price_offer');
 
         $this->document->setTitle($this->language->get('heading_title'));
-        $this->document->addScript('https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js');
+        $this->document->addScript('https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js');
+        $this->document->addScript('view/javascript/price-offer/price_offer.js');
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST' && $this->validateForm()) {
             $this->model_setting_setting->editSetting('price_offer', $this->postedSettings());
