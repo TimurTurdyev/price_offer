@@ -1,7 +1,7 @@
 <?php
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill};
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -30,6 +30,7 @@ class PriceOfferSheet
         $this->sheet = $this->spreadsheet->getActiveSheet();
         $this->sheet->setTitle(mb_substr(preg_replace('/[\\\\\/?*:\[\]]/', ' ', $title), 0, 31));
         $this->sheet->getDefaultRowDimension()->setRowHeight(25);
+        $this->sheet->getPageSetup()->setFitToWidth(1)->setFitToHeight(0);
     }
 
     public static function discountPrice($price, $percent)
@@ -65,11 +66,19 @@ class PriceOfferSheet
 
         $sheet->mergeCells('A2:H2');
         $sheet->setCellValue('A2', $title);
+        $sheet->getRowDimension(2)->setRowHeight(35);
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(14);
 
         foreach (array_keys(self::WIDTHS) as $index => $column) {
             $sheet->getColumnDimension($column)->setWidth(self::WIDTHS[$column]);
             $sheet->setCellValue($column . '3', $columns[$index]);
         }
+
+        $sheet->getStyle('A3:H3')->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
+        ]);
+        $sheet->freezePane('A' . self::FIRST_ROW);
     }
 
     // Товар без опций - одна строка с ценами, с опциями - строка товара и по строке на каждое значение опции.
@@ -83,6 +92,8 @@ class PriceOfferSheet
         $this->image($row, $product['image']);
 
         if ($product['options']) {
+            $this->sheet->getStyle('B' . $row)->getFont()->setBold(true);
+
             foreach ($product['options'] as $option) {
                 $this->sheet->setCellValue('B' . ++$row, $option['name']);
                 $this->prices($row, $option['price'], $percents);
@@ -96,6 +107,16 @@ class PriceOfferSheet
 
     public function save($file)
     {
+        $last = $this->row - 1;
+
+        if ($last >= self::FIRST_ROW) {
+            $this->sheet->getStyle('E' . self::FIRST_ROW . ':H' . $last)->getNumberFormat()->setFormatCode('#,##0.00');
+            $this->sheet->getStyle('B' . self::FIRST_ROW . ':B' . $last)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        }
+
+        $this->sheet->getStyle('A3:H' . max($last, 3))->getBorders()->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('BFBFBF');
+
         (new Xlsx($this->spreadsheet))->save($file);
         $this->spreadsheet->disconnectWorksheets();
     }
